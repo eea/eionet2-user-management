@@ -3,33 +3,33 @@
 [![GitHub release](https://img.shields.io/github/v/release/eea/eionet2-user-management)](https://github.com/eea/eionet2-user-management/releases)
 
 This Eionet 2.0 MS Teams app implements functionalities for:
-- Creating/Ading users to the (MS Teams) Eionet teams
-- Managing the user attributes
+- Creating/Adding users to the (MS Teams) Eionet 2.0 teams
+- Managing the users' attributes
 
-The app will be available only to the Eionet Admins and NFP roles.
+The app is available only to the Eionet Admin and NFP roles. For the rest of the users, they can manage their own data through the [Self-service app](https://github.com/eea/eionet2-self-service).
 
-### Creating/Ading users to the Eionet teams
+### Creating/Adding users to the Eionet teams
 
 The flow for inviting (external) users to join Eionet 2.0 MS Teams space is:
-- The (Admin or NFP) user open the "Create user" MS Teams app tab.
-- The (Admin or NFP) user enters the invited user email; email address logical validation checks are being performed by the application.
-- The (Admin or NFP) user enters the user attributes (contact data, roles, organizations etc.)
-- The user receives (by email) and accepts the invitation to join
-- The user is automatically joined to the specific Eionet teams
+- The (Admin or NFP) user opens the "Create user" MS Teams app tab.
+- The (Admin or NFP) user enters the invited user email; email address logical validation checks are performed by the application.
+- The (Admin or NFP) user enters the user attributes (contact data, roles, organizations etc.).
+- The user receives (by email) and accepts the invitation to join.
+- The user is automatically joined to the specific Eionet teams, based on its account attributes.
 
-During the process various validations checks are being performed by the application. Depending on the role - Admin or NFP, the app will impose specific restrictions in creating users.
+During the process, various validation checks are performed by the application. Depending on the current user role - Admin or NFP, the app will impose specific restrictions in creating/adding users.
 
-### Managing the users data
+### Managing the user attributes
 
 The flow for managing user attributes is:
-- The (Admin or NFP) user open the "Manage users" MS Teams app tab.
+- The (Admin or NFP) user opens the "Manage users" MS Teams app tab.
 - The (Admin or NFP) user updates the user attributes (contact data, roles, organizations etc.)
 
-During the process various validations checks are being performed by the application. Depending on the role - Admin or NFP, the app will impose specific restrictions in managing user attributes.
+During the process, various validation checks are performed by the application. Depending on the role - Admin or NFP, the app will impose specific restrictions in managing the user attributes.
 
 ## Features
 
-- Invite (external) users to join specific Eionet 2.0 teams (in the MS Teams environment)
+- Invite (external) users to join specific Eionet 2.0 teams (in the MS Teams EEA space)
 - Define user attributes (contact data, roles, organizations etc.)
 - Update user attributes
 
@@ -37,10 +37,10 @@ During the process various validations checks are being performed by the applica
 
 The application is available as a "tab" application in the MS Teams Eionet 2.0 teams.
 Users will see two tabs:
-- Create user (this tab provides  functionalities for inviting users to join Eionet 2.0)
-- Manage users (this tab provides functionalities for managing user attributes - contact data, roles, organizations etc.)
+- *Create user* (this tab provides  functionalities for inviting users to join Eionet 2.0)
+- *Manage users* (this tab provides functionalities for managing user attributes - contact data, roles, organizations etc.)
 
-The applications exchanges data with the EEA Azure tenant and with an internal EEA SharePoint instance to retrieve and store the data used by the application.
+The application exchanges data with the EEA Azure tenant and with an internal EEA SharePoint instance to retrieve and store the data used by the application.
 
 ## Release
 
@@ -48,7 +48,7 @@ See [RELEASE.md](https://github.com/eea/eionet2-user-management/blob/master/RELE
 
 ## How to contribute
 
-For now the contributions are not open outside the internal EEE project team.
+For now the contributions are not open outside the internal EEA project team.
 
 ## Copyright and license
 
