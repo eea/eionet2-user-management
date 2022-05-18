@@ -1,4 +1,4 @@
-# eionet2-self-service
+# eionet2-user-management
 
 [![GitHub release](https://img.shields.io/github/v/release/eea/eionet2-user-management)](https://github.com/eea/eionet2-user-management/releases)
 
