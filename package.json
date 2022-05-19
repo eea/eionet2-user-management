@@ -4,13 +4,17 @@
     "description": "",
     "author": "",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
         "install:tabs": "cd tabs && npm install",
         "installAll": "npm run install:api & npm run install:tabs",
         "install:api": "cd api && npm install"
     },
     "devDependencies": {
-        "@microsoft/teamsfx-cli": "0.*"
+        "@babel/core": "^7.17.12",
+        "@babel/preset-env": "^7.17.12",
+        "@microsoft/teamsfx-cli": "0.*",
+        "babel-jest": "^28.1.0",
+        "jest": "^28.1.0"
     },
     "license": "MIT",
     "dependencies": {

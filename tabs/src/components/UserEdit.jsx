@@ -48,9 +48,15 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                     }
                 } else {
                     let result = await editUser(user, mappings, oldValues);
-                    if (result) {
+                    if (!result.Success) {
+                        setWarningText(result.Message + "\n" + result.Error);
+                        setWarningVisible(true);
+                        setSuccess(false);
+                    } else {
                         setOldValues(JSON.parse(JSON.stringify(user)));
                         await refreshRow && refreshRow();
+                        setWarningText("");
+                        setWarningVisible(false);
                     }
                 }
                 setSuccess(true);

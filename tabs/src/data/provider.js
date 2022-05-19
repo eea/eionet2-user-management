@@ -397,11 +397,10 @@ export async function editUser(user, mappings, oldValues) {
         await saveADUser(user.ADUserId, user);
         await saveSPUser(user.ADUserId, user, false);
 
-        return true;
+        return { Success: true };
     }
     catch (err) {
-        console.log(err);
-        return false;
+        return wrapError(err, messages.UserEdit.Errors.Error);
     }
 }
 
