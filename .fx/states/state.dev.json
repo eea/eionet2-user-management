@@ -7,28 +7,32 @@
         "needCreateResourceGroup": false,
         "resourceGroupName": "ResourceGroup",
         "location": "westeurope",
-        "resourceNameSuffix": "b3a430",
+        "resourceNameSuffix": "81c57f",
         "provisionSucceeded": true
     },
     "fx-resource-appstudio": {
         "tenantId": "3433ca34-11c7-462b-96a9-fd70adcc5bb0",
-        "teamsAppId": "ed571fa2-c288-4015-8af6-27f992a2f05b",
-        "teamsAppUpdatedAt": 1650343033879
+        "teamsAppId": "d5f5d71d-e670-4cbf-9608-16b19b696067",
+        "teamsAppUpdatedAt": 1653037224289
     },
     "fx-resource-identity": {
         "identityName": "eionettestdev709099",
         "identityResourceId": "/subscriptions/83d442da-e921-445b-aa62-df8d53543040/resourceGroups/ResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/eionettestdev709099",
-        "identityClientId": "209e8238-eba5-429d-978c-67fc0c24adb0"
+        "identityClientId": "f12b0d00-5194-4022-b479-1972248d546a"
     },
     "fx-resource-aad-app-for-teams": {
-        "clientId": "22faa6b7-327c-420d-ac28-f38950ded4aa",
+        "clientId": "9cf6d36e-021c-495d-99a5-e3a154a06f78",
         "clientSecret": "{{fx-resource-aad-app-for-teams.clientSecret}}",
-        "objectId": "efcf265d-4b6c-42fd-8a4c-068a3f06767a",
-        "oauth2PermissionScopeId": "7b72db19-15cd-43f1-a964-d96093d6d0dd",
+        "objectId": "931041e3-d76b-42ba-9f66-1122a07df087",
+        "oauth2PermissionScopeId": "5c6699a8-96e4-4e8e-9013-85aefadc3818",
         "tenantId": "3433ca34-11c7-462b-96a9-fd70adcc5bb0",
         "oauthHost": "https://login.microsoftonline.com",
         "oauthAuthority": "https://login.microsoftonline.com/3433ca34-11c7-462b-96a9-fd70adcc5bb0",
-        "applicationIdUris": "api://eionettestdev709099tab.z6.web.core.windows.net/22faa6b7-327c-420d-ac28-f38950ded4aa"
+        "applicationIdUris": "api://eionettestdev709099tab.z6.web.core.windows.net/9cf6d36e-021c-495d-99a5-e3a154a06f78"
+    },
+    "fx-resource-function": {
+        "functionAppResourceId": "/subscriptions/83d442da-e921-445b-aa62-df8d53543040/resourceGroups/ResourceGroup/providers/Microsoft.Web/sites/eionettestdev709099api",
+        "functionEndpoint": "https://eionettestdev709099api.azurewebsites.net"
     },
     "fx-resource-simple-auth": {
         "endpoint": "https://eionettestdev709099simpleauth.azurewebsites.net",
@@ -38,9 +42,5 @@
         "domain": "eionettestdev709099tab.z6.web.core.windows.net",
         "endpoint": "https://eionettestdev709099tab.z6.web.core.windows.net",
         "storageResourceId": "/subscriptions/83d442da-e921-445b-aa62-df8d53543040/resourceGroups/ResourceGroup/providers/Microsoft.Storage/storageAccounts/eionettestdev709099tab"
-    },
-    "fx-resource-function": {
-        "functionAppResourceId": "/subscriptions/83d442da-e921-445b-aa62-df8d53543040/resourceGroups/ResourceGroup/providers/Microsoft.Web/sites/eionettestdev709099api",
-        "functionEndpoint": "https://eionettestdev709099api.azurewebsites.net"
     }
 }

@@ -20,7 +20,7 @@
         "MissingMembership": "At least one the following fields must be selected Eionet groups, Other memberships or NFP.",
         "Errors": {
             "Invitation": "Could not create the user invitation.",
-            "ADUserCreation": "Could not update the user contact data.",
+            "ADUser": "Could not update the user contact data.",
             "JoiningTeam": "The user could not be added to the Eionet teams. Please use the Manage user tab to update the user Membership(s)",
             "TagsCreation": "The tags could not be updated. Please use the Manage user tab to update the user Membership(s)",
             "SharepointUser": "User details could not be updated in the SharePoint Users list.",

@@ -387,6 +387,13 @@ export async function editUser(user, mappings, oldValues) {
                         "@odata.id": "https://graph.microsoft.com/beta/directoryObjects/" + user.ADUserId
                     });
             }
+
+            try {
+                await addTag(config.MainEionetGroupId, "NFP", user.ADUserId);
+            } catch (err) {
+                return wrapError(err, messages.UserInvite.Errors.TagsCreation);
+            }
+
         } else if (!user.NFP && oldValues.NFP) {
             await apiDelete("/groups/" + config.NFPGroupId + "/members/" + user.ADUserId + "/$ref")
             if (!newGroups.includes(config.MainEionetGroupId)) {
@@ -394,8 +401,17 @@ export async function editUser(user, mappings, oldValues) {
             }
         }
 
-        await saveADUser(user.ADUserId, user);
-        await saveSPUser(user.ADUserId, user, false);
+        try {
+            await saveADUser(user.ADUserId, user);
+        } catch (err) {
+            return wrapError(err, messages.UserEdit.Errors.ADUser);
+        }
+
+        try {
+            await saveSPUser(user.ADUserId, user, false);
+        } catch (err) {
+            return wrapError(err, messages.UserEdit.Errors.SharepointUser);
+        }
 
         return { Success: true };
     }
