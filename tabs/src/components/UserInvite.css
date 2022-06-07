@@ -73,37 +73,37 @@ code {
   flex-direction: row;
 }
 
-.control{
+.control {
   padding: 0.35rem;
 }
 
-.main{
+.main {
   background-color: white;
 }
 
-.warning{
+.warning {
   font-weight: bold;
 }
 
-.success{
+.success {
   color: green;
   font-weight: bold;
   padding: 0.35rem;
 }
-.check-button{
+.check-button {
   align-self: center;
   margin-top: 0.5rem !important;
 }
 
-.note-label{
+.note-label {
   margin: 0.5rem;
   align-self: center;
 }
-.warning{
+.warning {
   color: red;
   font-weight: bold;
   padding: 0.35rem;
 }
-.page-size{
+.page-size {
   height: 100%;
 }

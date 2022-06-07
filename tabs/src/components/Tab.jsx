@@ -1,18 +1,18 @@
-import { React, useState, useEffect } from "react";
-import { UserInvite } from "./UserInvite";
-import { getMe } from "../data/provider";
-import { Backdrop, CircularProgress } from "@mui/material";
+import { React, useState, useEffect } from 'react';
+import { UserInvite } from './UserInvite';
+import { getMe } from '../data/provider';
+import { Backdrop, CircularProgress } from '@mui/material';
 
 var showFunction = Boolean(process.env.REACT_APP_FUNC_NAME);
 
 export default function Tab() {
   const [userInfo, setUserInfo] = useState({
-    isAdmin: false,
-    isNFP: false,
-    isGuest: true,
-    country: '',
-    isLoaded: false
-  }),
+      isAdmin: false,
+      isNFP: false,
+      isGuest: true,
+      country: '',
+      isLoaded: false,
+    }),
     [loading, setloading] = useState(false);
   useEffect(() => {
     (async () => {
@@ -37,7 +37,9 @@ export default function Tab() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      {userInfo.isLoaded && !userInfo.isGuest && <UserInvite showFunction={showFunction} userInfo={userInfo} />}
+      {userInfo.isLoaded && !userInfo.isGuest && (
+        <UserInvite showFunction={showFunction} userInfo={userInfo} />
+      )}
     </div>
   );
 }

@@ -1,6 +1,13 @@
-import { loadConfiguration, ResourceType, LogLevel, setLogLevel, setLogFunction, TeamsUserCredential } from "@microsoft/teamsfx";
-import { useData } from "./useData";
-import { useTeams } from "msteams-react-base-component";
+import {
+  loadConfiguration,
+  ResourceType,
+  LogLevel,
+  setLogLevel,
+  setLogFunction,
+  TeamsUserCredential,
+} from '@microsoft/teamsfx';
+import { useData } from './useData';
+import { useTeams } from 'msteams-react-base-component';
 
 var teamsfxEndpoint = process.env.REACT_APP_TEAMSFX_ENDPOINT;
 var startLoginPageUrl = process.env.REACT_APP_START_LOGIN_PAGE_URL;
@@ -14,9 +21,11 @@ export function useTeamsFx() {
   const [result] = useTeams({});
   const { error, loading } = useData(async () => {
     if (!initialized) {
-      if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === 'development') {
         setLogLevel(LogLevel.Verbose);
-        setLogFunction((level, message) => { console.log(message); });
+        setLogFunction((level, message) => {
+          console.log(message);
+        });
       }
       loadConfiguration({
         authentication: {
@@ -27,7 +36,7 @@ export function useTeamsFx() {
         resources: [
           {
             type: ResourceType.API,
-            name: "default",
+            name: 'default',
             properties: {
               endpoint: functionEndpoint,
             },
