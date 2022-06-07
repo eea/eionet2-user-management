@@ -1,7 +1,7 @@
-import React from "react";
-import "./App.css";
-import * as microsoftTeams from "@microsoft/teams-js";
-import { Autocomplete, TextField } from "@mui/material";
+import React from 'react';
+import './App.css';
+import * as microsoftTeams from '@microsoft/teams-js';
+import { Autocomplete, TextField } from '@mui/material';
 
 /**
  * The 'Config' component is used to display your group tabs
@@ -16,18 +16,17 @@ class TabConfig extends React.Component {
       selectedTab: {},
       configuredTabs: [
         {
-          suggestedDisplayName: "Create user",
-          entityId: "Test",
-          urlSuffix: "tab",
+          suggestedDisplayName: 'Create user',
+          entityId: 'Test',
+          urlSuffix: 'tab',
         },
         {
-          suggestedDisplayName: "Manage users",
-          entityId: "EditUser",
-          urlSuffix: "edittab",
-
-        }
+          suggestedDisplayName: 'Manage users',
+          entityId: 'EditUser',
+          urlSuffix: 'edittab',
+        },
       ],
-    }
+    };
   }
 
   render() {
@@ -46,8 +45,8 @@ class TabConfig extends React.Component {
         microsoftTeams.settings.setSettings({
           suggestedDisplayName: tab.suggestedDisplayName,
           entityId: tab.entityId,
-          contentUrl: baseUrl + "/index.html#/" + tab.urlSuffix,
-          websiteUrl: baseUrl + "/index.html#/" + tab.urlSuffix,
+          contentUrl: baseUrl + '/index.html#/' + tab.urlSuffix,
+          websiteUrl: baseUrl + '/index.html#/' + tab.urlSuffix,
         });
 
       saveEvent.notifySuccess();
@@ -68,16 +67,18 @@ class TabConfig extends React.Component {
           <Autocomplete
             disablePortal
             id="combo-box-tabs"
-            defaultValue={
-              this.state.configuredTabs[0]
-            }
+            defaultValue={this.state.configuredTabs[0]}
             options={this.state.configuredTabs}
             getOptionLabel={(option) => option.suggestedDisplayName}
-            isOptionEqualToValue={(option, value) => option.entityId === value.entityId}
+            isOptionEqualToValue={(option, value) =>
+              option.entityId === value.entityId
+            }
             onChange={(e, value) => {
               this.setState({ selectedTab: value });
             }}
-            renderInput={(params) => <TextField required {...params} label="Tab" variant="standard" />}
+            renderInput={(params) => (
+              <TextField required {...params} label="Tab" variant="standard" />
+            )}
           />
         </div>
       </div>
