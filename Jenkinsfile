@@ -74,7 +74,7 @@ pipeline {
         }
       }
                  steps {
-                            sh '''set -o pipefail; yarn test --watchAll=false --reporters=default --reporters=jest-junit --collectCoverage --coverageReporters lcov cobertura text 2>&1 | tee -a unit_tests_log.txt'''
+                            sh '''set -o pipefail; yarn; yarn test --watchAll=false --reporters=default --reporters=jest-junit --collectCoverage --coverageReporters lcov cobertura text 2>&1 | tee -a unit_tests_log.txt'''
 
                          catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
 
