@@ -76,22 +76,26 @@ pipeline {
                  steps {
                             sh '''set -o pipefail;cd tabs; yarn test --watchAll=false --reporters=default --reporters=jest-junit --collectCoverage --coverageReporters lcov cobertura text 2>&1 | tee -a unit_tests_log.txt'''
 
-                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-
+                         }
+                         post {
+                           always {
+                             
+                           catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                            junit 'tabs/junit.xml'
                             publishHTML (target : [allowMissing: false,
                              alwaysLinkToLastBuild: true,
                              keepAll: true,
-                             reportDir: 'coverage/lcov-report',
+                             reportDir: 'tabs/coverage/lcov-report',
                              reportFiles: 'index.html',
                              reportName: 'UTCoverage',
                              reportTitles: 'Unit Tests Code Coverage'])
-                           junit 'junit.xml'
+                             
+                           
                          }
-                         }
-                         post {
+                           }
                            failure {
                               catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                                    archiveArtifacts artifacts: 'unit_tests_log.txt', fingerprint: true
+                                    archiveArtifacts artifacts: 'tabs/unit_tests_log.txt', fingerprint: true
                               }  
                            }
                          }
