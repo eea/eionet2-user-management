@@ -53,15 +53,9 @@ pipeline {
         }
       }
                  steps {
-                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                            sh "cd tabs; yarn run prettier"
-                         }
-                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                            sh "cd tabs; yarn run lint"
-                         }
-                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                            sh "cd tabs; yarn run stylelint"
-                         }
                    }
                }
     
@@ -73,9 +67,9 @@ pipeline {
           not { branch 'master' }
         }
       }
-                 steps {   catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                 steps {   
                             sh '''set -o pipefail;cd tabs; yarn test --watchAll=false --reporters=default --reporters=jest-junit --collectCoverage --coverageReporters lcov cobertura text 2>&1 | tee -a unit_tests_log.txt'''
-                           }
+                           
                          }
                          post {
                            always {
