@@ -7,5 +7,5 @@ test('validateName', () => {
 });
 
 test('validateMandatoryField-alwaysFail', () => {
-  expect(validator.validateMandatoryField('')).toBe(undefined);
+  expect(validator.validateMandatoryField('test')).toBe(undefined);
 });
