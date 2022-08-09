@@ -55,11 +55,11 @@ export function UserInvite({ userInfo }) {
   }, [selectedUser, userInfo]);
 
   const onInputEmailChange = (e) => {
-      setInputEmail(e.target.value);
-      setSelectedUser(defaultUser);
-      setWarningVisible(false);
-      setFormVisible(false);
-    },
+    setInputEmail(e.target.value);
+    setSelectedUser(defaultUser);
+    setWarningVisible(false);
+    setFormVisible(false);
+  },
     onCheckEmail = async () => {
       setFormVisible(false);
       setLoading(true);
@@ -89,7 +89,7 @@ export function UserInvite({ userInfo }) {
 
   return (
     <div className="welcome page main">
-      <div className="page-padding page-size">
+      <div className="page-size">
         <div className="row">
           <Box
             component="form"

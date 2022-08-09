@@ -16,11 +16,6 @@ class TabConfig extends React.Component {
       selectedTab: {},
       configuredTabs: [
         {
-          suggestedDisplayName: 'Create user',
-          entityId: 'Test',
-          urlSuffix: 'tab',
-        },
-        {
           suggestedDisplayName: 'Manage users',
           entityId: 'EditUser',
           urlSuffix: 'edittab',
