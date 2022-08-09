@@ -55,11 +55,11 @@ export function UserInvite({ userInfo }) {
   }, [selectedUser, userInfo]);
 
   const onInputEmailChange = (e) => {
-    setInputEmail(e.target.value);
-    setSelectedUser(defaultUser);
-    setWarningVisible(false);
-    setFormVisible(false);
-  },
+      setInputEmail(e.target.value);
+      setSelectedUser(defaultUser);
+      setWarningVisible(false);
+      setFormVisible(false);
+    },
     onCheckEmail = async () => {
       setFormVisible(false);
       setLoading(true);

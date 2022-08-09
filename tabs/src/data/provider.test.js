@@ -1,8 +1,5 @@
 const provider = require('./provider');
 
-jest.mock('./provider')
+jest.mock('./provider');
 
-
-provider.getUser.mockResolvedValue({
-
-});
+provider.getUser.mockResolvedValue({});

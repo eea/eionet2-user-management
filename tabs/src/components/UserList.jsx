@@ -19,7 +19,7 @@ import {
   CircularProgress,
   Box,
   Alert,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
@@ -41,59 +41,59 @@ export function UserList({ userInfo }) {
     [loading, setloading] = useState(false);
 
   const renderButtons = (params) => {
-    return (
-      <div className='row'>
-        <strong>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            style={{ marginLeft: 16 }}
-            endIcon={<CreateIcon />}
-            onClick={async () => {
-              setFormVisible(false);
-              const user = params.row;
-              if (user.ADUserId) {
-                const userDetails = await getUser(user.ADUserId);
+      return (
+        <div className="row">
+          <strong>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<CreateIcon />}
+              onClick={async () => {
+                setFormVisible(false);
+                const user = params.row;
+                if (user.ADUserId) {
+                  const userDetails = await getUser(user.ADUserId);
 
-                user.FirstName = userDetails.givenName;
-                user.LastName = userDetails.surname;
+                  user.FirstName = userDetails.givenName;
+                  user.LastName = userDetails.surname;
+                  setSelectedUser(user);
+                  setFormVisible(true);
+                } else {
+                  setAlertOpen(true);
+                }
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<DeleteIcon />}
+              onClick={async () => {
+                setFormVisible(false);
+                const user = params.row;
+                if (user.ADUserId) {
+                  const userDetails = await getUser(user.ADUserId),
+                    groupsString = await getUserGroups(user.ADUserId);
+
+                  user.FirstName = userDetails.givenName;
+                  user.LastName = userDetails.surname;
+                  user.groupsString = groupsString;
+                }
                 setSelectedUser(user);
-                setFormVisible(true);
-              } else {
-                setAlertOpen(true);
-              }
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            style={{ marginLeft: 16 }}
-            endIcon={<DeleteIcon />}
-            onClick={async () => {
-              setFormVisible(false);
-              const user = params.row;
-              if (user.ADUserId) {
-                const userDetails = await getUser(user.ADUserId),
-                  groupsString = await getUserGroups(user.ADUserId);
-
-                user.FirstName = userDetails.givenName;
-                user.LastName = userDetails.surname;
-                user.groupsString = groupsString;
-              }
-              setSelectedUser(user);
-              setDeleteAlertOpen(true);
-            }}
-          >
-            Remove
-          </Button>
-        </strong>
-      </div >
-    );
-  },
+                setDeleteAlertOpen(true);
+              }}
+            >
+              Remove
+            </Button>
+          </strong>
+        </div>
+      );
+    },
     handleAlertClose = (event, reason) => {
       if (reason === 'clickaway') {
         return;
@@ -135,8 +135,10 @@ export function UserList({ userInfo }) {
     },
     getDeleteMessage = () => {
       let message = messages.UserList.DeleteUser;
-      message = selectedUser ? message.replace('#name#', selectedUser.Title) : "";
-      message += " " + configuration.DeleteEionetUserDetails;
+      message = selectedUser
+        ? message.replace('#name#', selectedUser.Title)
+        : '';
+      message += ' ' + configuration.DeleteEionetUserDetails;
       return message;
     },
     handleClose = () => {
@@ -148,7 +150,7 @@ export function UserList({ userInfo }) {
       setAddFormVisible(false);
     },
     handleSnackbarClose = (event, reason) => {
-      if (reason === "clickaway") {
+      if (reason === 'clickaway') {
         return;
       }
 
@@ -179,7 +181,6 @@ export function UserList({ userInfo }) {
       renderCell: renderButtons,
       disableClickEventBubbling: true,
     },
-
   ];
   useEffect(() => {
     (async () => {
@@ -206,8 +207,13 @@ export function UserList({ userInfo }) {
           horizontal: 'center',
         }}
         autoHideDuration={6000}
-        onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
           User deleted succesfully!
         </Alert>
       </Snackbar>
@@ -237,31 +243,38 @@ export function UserList({ userInfo }) {
           aria-labelledby="responsive-dialog-title"
         >
           <DialogTitle id="responsive-dialog-title">
-            {"Remove user"}
+            {'Remove user'}
           </DialogTitle>
           <DialogContent>
-
             <DialogContentText>
-              {getDeleteMessage()}<br />
-              {selectedUser.groupsString && messages.UserList.DeleteUserMemberships}<br />
+              {getDeleteMessage()}
+              <br />
+              {selectedUser.groupsString &&
+                messages.UserList.DeleteUserMemberships}
+              <br />
               {selectedUser.groupsString}
             </DialogContentText>
-
           </DialogContent>
           <DialogActions>
-            <Button variant="contained"
+            <Button
+              variant="contained"
               color="secondary"
-              size="small" onClick={handleDeleteYes}>
+              size="small"
+              onClick={handleDeleteYes}
+            >
               Yes
             </Button>
-            <Button variant="contained"
+            <Button
+              variant="contained"
               color="secondary"
-              size="small" onClick={handleDeleteNo}>
+              size="small"
+              onClick={handleDeleteNo}
+            >
               No
             </Button>
           </DialogActions>
         </Dialog>
-        <div className='list-bar'>
+        <div className="list-bar">
           <div className="add-bar">
             <Button
               variant="contained"
@@ -291,7 +304,9 @@ export function UserList({ userInfo }) {
                         !value ||
                         u.Email.toLowerCase().includes(value.toLowerCase()) ||
                         (u.Title &&
-                          u.Title.toLowerCase().includes(value.toLowerCase())) ||
+                          u.Title.toLowerCase().includes(
+                            value.toLowerCase()
+                          )) ||
                         (u.Membership &&
                           u.Membership.some((m) =>
                             m.toLowerCase().includes(value.toLowerCase())
