@@ -114,7 +114,7 @@ export async function getUserId() {
 }
 
 const sharepointSiteId =
-    '7lcpdm.sharepoint.com,bf9359de-0f13-4b00-8b5a-114f6ef3bfb0,6609a994-5225-4a1d-bd05-a239c7b45f72',
+  '7lcpdm.sharepoint.com,bf9359de-0f13-4b00-8b5a-114f6ef3bfb0,6609a994-5225-4a1d-bd05-a239c7b45f72',
   configurationListId = '010b1be2-0df5-4ab1-b2a7-17e010aae775';
 
 var _configuration = undefined;
@@ -123,10 +123,10 @@ export async function getConfiguration() {
     if (!_configuration) {
       const response = await apiGet(
         '/sites/' +
-          sharepointSiteId +
-          '/lists/' +
-          configurationListId +
-          '/items?$expand=fields'
+        sharepointSiteId +
+        '/lists/' +
+        configurationListId +
+        '/items?$expand=fields'
       );
       _configuration = {};
       response.graphClientMessage.value.forEach(function (item) {
@@ -150,9 +150,10 @@ export async function logEvent(err, apiPath, data) {
       ApplicationName: 'Eionet2-User-Management',
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
-      Error: err.response?.data?.error?.body,
+      Message: err.response?.data?.error?.body,
       UserId: userId,
-      Timestamp: Date(),
+      Timestamp: new Date(),
+      Logtype: 'Error',
     },
   };
 
