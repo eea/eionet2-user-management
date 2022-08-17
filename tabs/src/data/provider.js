@@ -113,12 +113,12 @@ async function addTag(teamId, name, userId) {
     let existingTag = response.graphClientMessage.value[0],
       tagMemberIdResponse = await apiGet(
         '/teams/' +
-        teamId +
-        '/tags/' +
-        existingTag.id +
-        "/members?$filter=userId eq '" +
-        userId +
-        "'"
+          teamId +
+          '/tags/' +
+          existingTag.id +
+          "/members?$filter=userId eq '" +
+          userId +
+          "'"
       );
 
     if (
@@ -156,12 +156,12 @@ async function removeTag(teamId, name, userId) {
     let existingTag = response.graphClientMessage.value[0],
       tagMemberIdResponse = await apiGet(
         '/teams/' +
-        teamId +
-        '/tags/' +
-        existingTag.id +
-        "/members?$filter=userId eq '" +
-        userId +
-        "'"
+          teamId +
+          '/tags/' +
+          existingTag.id +
+          "/members?$filter=userId eq '" +
+          userId +
+          "'"
       );
 
     if (
@@ -171,11 +171,11 @@ async function removeTag(teamId, name, userId) {
       let tagMemberId = tagMemberIdResponse.graphClientMessage.value[0].id;
       await apiDelete(
         '/teams/' +
-        teamId +
-        '/tags/' +
-        existingTag.id +
-        '/members/' +
-        tagMemberId
+          teamId +
+          '/tags/' +
+          existingTag.id +
+          '/members/' +
+          tagMemberId
       );
     }
   }
@@ -281,11 +281,11 @@ async function saveSPUser(userId, userData, newYN) {
 export async function sendInvitation(user, mappings) {
   try {
     let firstMapping = mappings.find(
-      (m) =>
-        (user.Membership && user.Membership.includes(m.Membership)) ||
-        (user.OtherMemberships &&
-          user.OtherMemberships.includes(m.Membership))
-    ),
+        (m) =>
+          (user.Membership && user.Membership.includes(m.Membership)) ||
+          (user.OtherMemberships &&
+            user.OtherMemberships.includes(m.Membership))
+      ),
       config = await getConfiguration();
     let userId = undefined,
       invitationResponse = undefined,
@@ -442,11 +442,11 @@ export async function sendInvitation(user, mappings) {
 export async function editUser(user, mappings, oldValues) {
   try {
     let newMappings = mappings.filter(
-      (m) =>
-        (user.Membership && user.Membership.includes(m.Membership)) ||
-        (user.OtherMemberships &&
-          user.OtherMemberships.includes(m.Membership))
-    ),
+        (m) =>
+          (user.Membership && user.Membership.includes(m.Membership)) ||
+          (user.OtherMemberships &&
+            user.OtherMemberships.includes(m.Membership))
+      ),
       oldMappings = mappings.filter(
         (m) =>
           (oldValues.Membership &&
@@ -537,10 +537,10 @@ export async function editUser(user, mappings, oldValues) {
       if (!newGroups.includes(config.MainEionetGroupId)) {
         await apiDelete(
           '/groups/' +
-          config.MainEionetGroupId +
-          '/members/' +
-          user.ADUserId +
-          '/$ref'
+            config.MainEionetGroupId +
+            '/members/' +
+            user.ADUserId +
+            '/$ref'
         );
       }
     }
@@ -570,11 +570,11 @@ export async function removeUser(user) {
     if (user.ADUserId) {
       try {
         let filteredMappings = mappings.filter(
-          (m) =>
-            (user.Membership && user.Membership.includes(m.Membership)) ||
-            (user.OtherMemberships &&
-              user.OtherMemberships.includes(m.Membership))
-        ),
+            (m) =>
+              (user.Membership && user.Membership.includes(m.Membership)) ||
+              (user.OtherMemberships &&
+                user.OtherMemberships.includes(m.Membership))
+          ),
           groups = [...new Set(filteredMappings.map((m) => m.O365GroupId))];
 
         groups.forEach(async (groupId) => {
@@ -605,11 +605,11 @@ export async function removeUser(user) {
       const spConfig = await getConfiguration();
       await apiDelete(
         '/sites/' +
-        spConfig.SharepointSiteId +
-        '/lists/' +
-        spConfig.UserListId +
-        '/items/' +
-        user.id
+          spConfig.SharepointSiteId +
+          '/lists/' +
+          spConfig.UserListId +
+          '/items/' +
+          user.id
       );
     } catch (err) {
       return wrapError(err, messages.UserDelete.Errors.ADUser);
