@@ -41,59 +41,59 @@ export function UserList({ userInfo }) {
     [loading, setloading] = useState(false);
 
   const renderButtons = (params) => {
-      return (
-        <div className="row">
-          <strong>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              style={{ marginLeft: 16 }}
-              endIcon={<CreateIcon />}
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId);
+    return (
+      <div className="row">
+        <strong>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            style={{ marginLeft: 16 }}
+            endIcon={<CreateIcon />}
+            onClick={async () => {
+              setFormVisible(false);
+              const user = params.row;
+              if (user.ADUserId) {
+                const userDetails = await getUser(user.ADUserId);
 
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
-                  setSelectedUser(user);
-                  setFormVisible(true);
-                } else {
-                  setAlertOpen(true);
-                }
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              style={{ marginLeft: 16 }}
-              endIcon={<DeleteIcon />}
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId),
-                    groupsString = await getUserGroups(user.ADUserId);
-
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
-                  user.groupsString = groupsString;
-                }
+                user.FirstName = userDetails.givenName;
+                user.LastName = userDetails.surname;
                 setSelectedUser(user);
-                setDeleteAlertOpen(true);
-              }}
-            >
-              Remove
-            </Button>
-          </strong>
-        </div>
-      );
-    },
+                setFormVisible(true);
+              } else {
+                setAlertOpen(true);
+              }
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            style={{ marginLeft: 16 }}
+            endIcon={<DeleteIcon />}
+            onClick={async () => {
+              setFormVisible(false);
+              const user = params.row;
+              if (user.ADUserId) {
+                const userDetails = await getUser(user.ADUserId),
+                  groupsString = await getUserGroups(user.ADUserId);
+
+                user.FirstName = userDetails.givenName;
+                user.LastName = userDetails.surname;
+                user.groupsString = groupsString;
+              }
+              setSelectedUser(user);
+              setDeleteAlertOpen(true);
+            }}
+          >
+            Remove
+          </Button>
+        </strong>
+      </div>
+    );
+  },
     handleAlertClose = (event, reason) => {
       if (reason === 'clickaway') {
         return;
@@ -214,7 +214,7 @@ export function UserList({ userInfo }) {
           severity="success"
           sx={{ width: '100%' }}
         >
-          User deleted succesfully!
+          User removed succesfully!
         </Alert>
       </Snackbar>
       <Box

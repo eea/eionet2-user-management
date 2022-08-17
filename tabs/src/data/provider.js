@@ -4,7 +4,7 @@ import {
   apiPatch,
   apiDelete,
   getConfiguration,
-  logEvent,
+  logInfo,
 } from './apiProvider';
 import { getMappingsList, getSPUserByMail } from './sharepointProvider';
 import messages from './messages.json';
@@ -432,7 +432,7 @@ export async function sendInvitation(user, mappings) {
         return wrapError(err, messages.UserInvite.Errors.SharepointUser);
       }
     }
-
+    logInfo('Invitation sent for user', '', user, 'Add user');
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserInvite.Errors.Error);
@@ -615,7 +615,7 @@ export async function removeUser(user) {
       return wrapError(err, messages.UserDelete.Errors.ADUser);
     }
 
-    logEvent('User deleted', '', user);
+    logInfo('User removed', '', user, 'Remove user');
     return { Success: true };
   }
   return false;
