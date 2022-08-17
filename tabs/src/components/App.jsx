@@ -5,7 +5,6 @@ import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import { useTeamsFx } from './lib/useTeamsFx';
 import Privacy from './Privacy';
 import TermsOfUse from './TermsOfUse';
-import Tab from './Tab';
 import './App.css';
 import TabConfig from './TabConfig';
 import EditTab from './EditTab';
@@ -23,7 +22,7 @@ export default function App() {
     >
       <Router>
         <Route exact path="/">
-          <Redirect to="/tab" />
+          <Redirect to="/edittab" />
         </Route>
         {loading ? (
           <Loader style={{ margin: 100 }} />
@@ -31,7 +30,6 @@ export default function App() {
           <>
             <Route exact path="/privacy" component={Privacy} />
             <Route exact path="/termsofuse" component={TermsOfUse} />
-            <Route exact path="/tab" component={Tab} />
             <Route exact path="/edittab" component={EditTab} />
             <Route exact path="/config" component={TabConfig} />
           </>

@@ -1,5 +1,6 @@
 import { React, useState, useEffect } from 'react';
-import { getUser } from '../data/provider';
+import { getUser, removeUser, getUserGroups } from '../data/provider';
+import { getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { DataGrid } from '@mui/x-data-grid';
@@ -10,51 +11,87 @@ import {
   Chip,
   Dialog,
   DialogTitle,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   IconButton,
   Backdrop,
   CircularProgress,
   Box,
   Alert,
+  Snackbar,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { UserEdit } from './UserEdit';
+import { UserInvite } from './UserInvite';
 
 export function UserList({ userInfo }) {
   const [users, setUsers] = useState([]),
     [filteredUsers, setFilteredUsers] = useState([]),
     [selectedUser, setSelectedUser] = useState({}),
+    [configuration, setConfiguration] = useState({}),
+    [addFormVisible, setAddFormVisible] = useState(false),
     [formVisible, setFormVisible] = useState(false),
+    [deleteAlertOpen, setDeleteAlertOpen] = useState(false),
     [alertOpen, setAlertOpen] = useState(false),
+    [snackbarOpen, setSnackbarOpen] = useState(false),
     [loading, setloading] = useState(false);
 
-  const renderEditButton = (params) => {
+  const renderButtons = (params) => {
       return (
-        <strong>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            style={{ marginLeft: 16 }}
-            endIcon={<CreateIcon />}
-            onClick={async () => {
-              setFormVisible(false);
-              const user = params.row;
-              if (user.ADUserId) {
-                const userDetails = await getUser(user.ADUserId);
+        <div className="row">
+          <strong>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<CreateIcon />}
+              onClick={async () => {
+                setFormVisible(false);
+                const user = params.row;
+                if (user.ADUserId) {
+                  const userDetails = await getUser(user.ADUserId);
 
-                user.FirstName = userDetails.givenName;
-                user.LastName = userDetails.surname;
+                  user.FirstName = userDetails.givenName;
+                  user.LastName = userDetails.surname;
+                  setSelectedUser(user);
+                  setFormVisible(true);
+                } else {
+                  setAlertOpen(true);
+                }
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<DeleteIcon />}
+              onClick={async () => {
+                setFormVisible(false);
+                const user = params.row;
+                if (user.ADUserId) {
+                  const userDetails = await getUser(user.ADUserId),
+                    groupsString = await getUserGroups(user.ADUserId);
+
+                  user.FirstName = userDetails.givenName;
+                  user.LastName = userDetails.surname;
+                  user.groupsString = groupsString;
+                }
                 setSelectedUser(user);
-                setFormVisible(true);
-              } else {
-                setAlertOpen(true);
-              }
-            }}
-          >
-            Edit
-          </Button>
-        </strong>
+                setDeleteAlertOpen(true);
+              }}
+            >
+              Remove
+            </Button>
+          </strong>
+        </div>
       );
     },
     handleAlertClose = (event, reason) => {
@@ -63,6 +100,17 @@ export function UserList({ userInfo }) {
       }
 
       setAlertOpen(false);
+    },
+    handleDeleteYes = async () => {
+      setDeleteAlertOpen(false);
+      setloading(true);
+      let result = await removeUser(selectedUser);
+      await refreshRow();
+      setloading(false);
+      setSnackbarOpen(result.Success);
+    },
+    handleDeleteNo = () => {
+      setDeleteAlertOpen(false);
     },
     renderMembershipTags = (params) => {
       let index = 0;
@@ -85,11 +133,29 @@ export function UserList({ userInfo }) {
         setFilteredUsers(invitedUsers);
       }
     },
+    getDeleteMessage = () => {
+      let message = messages.UserList.DeleteUser;
+      message = selectedUser
+        ? message.replace('#name#', selectedUser.Title)
+        : '';
+      message += ' ' + configuration.DeleteEionetUserDetails;
+      return message;
+    },
     handleClose = () => {
       setSelectedUser({});
       setFormVisible(false);
-    };
+    },
+    handleAddClose = () => {
+      setSelectedUser({});
+      setAddFormVisible(false);
+    },
+    handleSnackbarClose = (event, reason) => {
+      if (reason === 'clickaway') {
+        return;
+      }
 
+      setSnackbarOpen(false);
+    };
   const columns = [
     { field: 'Title', headerName: 'Name', flex: 1 },
     { field: 'Email', headerName: 'Email', flex: 1 },
@@ -111,8 +177,8 @@ export function UserList({ userInfo }) {
     {
       field: 'Edit',
       headerName: '',
-      width: 150,
-      renderCell: renderEditButton,
+      width: 250,
+      renderCell: renderButtons,
       disableClickEventBubbling: true,
     },
   ];
@@ -124,12 +190,33 @@ export function UserList({ userInfo }) {
         setUsers(invitedUsers);
         setFilteredUsers(invitedUsers);
       }
+      let configuration = await getConfiguration();
+      if (configuration) {
+        setConfiguration(configuration);
+      }
       setloading(false);
     })();
   }, []);
 
   return (
     <div className="welcome page main page-padding">
+      <Snackbar
+        open={snackbarOpen}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          User removed succesfully!
+        </Alert>
+      </Snackbar>
       <Box
         sx={{
           boxShadow: 2,
@@ -150,33 +237,88 @@ export function UserList({ userInfo }) {
             {messages.UserList.MissingADUser}
           </Alert>
         </Dialog>
-        <div className="search-bar">
-          <TextField
-            id="search"
-            label="Search"
-            variant="standard"
-            className="search-box"
-            onChange={(event) => {
-              const { value } = event.target;
-              setTimeout(
-                setFilteredUsers(
-                  users.filter((u) => {
-                    return (
-                      !value ||
-                      u.Email.toLowerCase().includes(value.toLowerCase()) ||
-                      (u.Title &&
-                        u.Title.toLowerCase().includes(value.toLowerCase())) ||
-                      (u.Membership &&
-                        u.Membership.some((m) =>
-                          m.toLowerCase().includes(value.toLowerCase())
-                        ))
-                    );
-                  })
-                ),
-                50
-              );
-            }}
-          />
+        <Dialog
+          open={deleteAlertOpen}
+          onClose={handleDeleteNo}
+          aria-labelledby="responsive-dialog-title"
+        >
+          <DialogTitle id="responsive-dialog-title">
+            {'Remove user'}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {getDeleteMessage()}
+              <br />
+              {selectedUser.groupsString &&
+                messages.UserList.DeleteUserMemberships}
+              <br />
+              {selectedUser.groupsString}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={handleDeleteYes}
+            >
+              Yes
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={handleDeleteNo}
+            >
+              No
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <div className="list-bar">
+          <div className="add-bar">
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<GroupAddIcon />}
+              onClick={async () => {
+                setAddFormVisible(true);
+              }}
+            >
+              Add
+            </Button>
+          </div>
+          <div className="search-bar">
+            <TextField
+              id="search"
+              label="Search"
+              variant="standard"
+              className="search-box"
+              onChange={(event) => {
+                const { value } = event.target;
+                setTimeout(
+                  setFilteredUsers(
+                    users.filter((u) => {
+                      return (
+                        !value ||
+                        u.Email.toLowerCase().includes(value.toLowerCase()) ||
+                        (u.Title &&
+                          u.Title.toLowerCase().includes(
+                            value.toLowerCase()
+                          )) ||
+                        (u.Membership &&
+                          u.Membership.some((m) =>
+                            m.toLowerCase().includes(value.toLowerCase())
+                          ))
+                      );
+                    })
+                  ),
+                  50
+                );
+              }}
+            />
+          </div>
         </div>
         <div className="user-list">
           <DataGrid
@@ -213,6 +355,25 @@ export function UserList({ userInfo }) {
               newYN={false}
               userInfo={userInfo}
             ></UserEdit>
+          </div>
+        </Dialog>
+        <Dialog open={addFormVisible} onClose={handleAddClose} maxWidth="xl">
+          <DialogTitle>
+            <IconButton
+              aria-label="close"
+              onClick={handleAddClose}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <div className="page-padding">
+            <UserInvite userInfo={userInfo}> </UserInvite>
           </div>
         </Dialog>
       </Box>

@@ -4,8 +4,9 @@ import {
   apiPatch,
   apiDelete,
   getConfiguration,
+  logInfo,
 } from './apiProvider';
-import { getSPUserByMail } from './sharepointProvider';
+import { getMappingsList, getSPUserByMail } from './sharepointProvider';
 import messages from './messages.json';
 
 function wrapError(err, message) {
@@ -71,6 +72,29 @@ export async function getUser(userId) {
   try {
     const response = await apiGet('/users/' + userId);
     return response.graphClientMessage;
+  } catch (err) {
+    console.log(err);
+    return undefined;
+  }
+}
+
+export async function getUserGroups(userId) {
+  try {
+    const response = await apiGet('/users/' + userId + '/memberOf'),
+      mappings = await getMappingsList();
+    let value = response.graphClientMessage
+      ? response.graphClientMessage.value
+      : [];
+    return value
+      .filter((v) => {
+        return !mappings.some((m) => {
+          return m.O365GroupId === v.id;
+        });
+      })
+      .map(function (e) {
+        return e.displayName;
+      })
+      .join(', ');
   } catch (err) {
     console.log(err);
     return undefined;
@@ -382,7 +406,7 @@ export async function sendInvitation(user, mappings) {
                 subject: config.AddedToTeamsMailSubject,
                 body: {
                   contentType: 'Text',
-                  content: config.AddedToTeamsMailBody,
+                  content: config.AddedToTeamsMailBody + teamsURLs,
                 },
                 toRecipients: [
                   {
@@ -408,7 +432,7 @@ export async function sendInvitation(user, mappings) {
         return wrapError(err, messages.UserInvite.Errors.SharepointUser);
       }
     }
-
+    logInfo('Invitation sent for user', '', user, 'Add user');
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserInvite.Errors.Error);
@@ -537,4 +561,62 @@ export async function editUser(user, mappings, oldValues) {
   } catch (err) {
     return wrapError(err, messages.UserEdit.Errors.Error);
   }
+}
+
+export async function removeUser(user) {
+  if (user) {
+    const mappings = await getMappingsList();
+
+    if (user.ADUserId) {
+      try {
+        let filteredMappings = mappings.filter(
+            (m) =>
+              (user.Membership && user.Membership.includes(m.Membership)) ||
+              (user.OtherMemberships &&
+                user.OtherMemberships.includes(m.Membership))
+          ),
+          groups = [...new Set(filteredMappings.map((m) => m.O365GroupId))];
+
+        groups.forEach(async (groupId) => {
+          setTimeout(
+            await apiDelete(
+              '/groups/' + groupId + '/members/' + user.ADUserId + '/$ref'
+            ),
+            50
+          );
+        });
+      } catch (err) {
+        return wrapError(err, messages.UserDelete.Errors.Groups);
+      }
+
+      const apiPath = '/users/' + user.ADUserId;
+      try {
+        await apiPatch(apiPath, {
+          displayName: user.FirstName + ' ' + user.LastName,
+          department: 'Ex-Eionet',
+          country: null,
+        });
+      } catch (err) {
+        return wrapError(err, messages.UserDelete.Errors.ADUser);
+      }
+    }
+
+    try {
+      const spConfig = await getConfiguration();
+      await apiDelete(
+        '/sites/' +
+          spConfig.SharepointSiteId +
+          '/lists/' +
+          spConfig.UserListId +
+          '/items/' +
+          user.id
+      );
+    } catch (err) {
+      return wrapError(err, messages.UserDelete.Errors.ADUser);
+    }
+
+    logInfo('User removed', '', user, 'Remove user');
+    return { Success: true };
+  }
+  return false;
 }

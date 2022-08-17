@@ -1,7 +1,7 @@
 {
     "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.11/MicrosoftTeams.schema.json",
     "manifestVersion": "1.11",
-    "version": "1.1.11",
+    "version": "1.1.16",
     "id": "{{state.fx-resource-appstudio.teamsAppId}}",
     "packageName": "com.microsoft.teams.extension",
     "developer": {
@@ -36,15 +36,6 @@
         }
     ],
     "staticTabs": [
-        {
-            "entityId": "index",
-            "name": "Create user",
-            "contentUrl": "{{{state.fx-resource-frontend-hosting.endpoint}}}/index.html#/tab",
-            "websiteUrl": "{{{state.fx-resource-frontend-hosting.endpoint}}}/index.html#/tab",
-            "scopes": [
-                "personal"
-            ]
-        },
         {
             "entityId": "editTab",
             "name": "Manage users",

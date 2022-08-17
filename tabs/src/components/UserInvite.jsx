@@ -89,7 +89,7 @@ export function UserInvite({ userInfo }) {
 
   return (
     <div className="welcome page main">
-      <div className="page-padding page-size">
+      <div className="page-size">
         <div className="row">
           <Box
             component="form"

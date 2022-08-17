@@ -5,7 +5,3 @@ test('validateName', () => {
     'Please enter at least 2 characters!'
   );
 });
-
-test('validateMandatoryField-alwaysFail', () => {
-  expect(validator.validateMandatoryField('test')).toBe(undefined);
-});

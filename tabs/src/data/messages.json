@@ -14,7 +14,9 @@
     }
   },
   "UserList": {
-    "MissingADUser": "The user account cannot be updated (account is not present in the Azure tenant)."
+    "MissingADUser": "The user account cannot be updated (account is not present in the Azure tenant).",
+    "DeleteUser": "Are you sure you want to remove the user #name# from the Eionet directory?",
+    "DeleteUserMemberships": "The user is also a member of the following groups at EEA:"
   },
   "UserEdit": {
     "MissingMembership": "At least one the following fields must be selected Eionet groups, Other memberships or NFP.",
@@ -25,6 +27,11 @@
       "TagsCreation": "The tags could not be updated. Please use the Manage user tab to update the user Membership(s)",
       "SharepointUser": "User details could not be updated in the SharePoint Users list.",
       "Error": "An error has occured when saving user information."
+    }
+  },
+  "UserDelete": {
+    "Errors": {
+      "ADUser": "Could not update the user information."
     }
   }
 }
