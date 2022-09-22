@@ -91,7 +91,7 @@ export async function getUserMail() {
 }
 
 var sharepointSiteId = process.env.REACT_APP_SHAREPOINT_SITE_ID,
-  configurationListId = process.env.REACT_APP_ONFIGURATION_LIST_ID;
+  configurationListId = process.env.REACT_APP_CONFIGURATION_LIST_ID;
 
 var _configuration = undefined;
 export async function getConfiguration() {
@@ -99,10 +99,10 @@ export async function getConfiguration() {
     if (!_configuration) {
       const response = await apiGet(
         '/sites/' +
-          sharepointSiteId +
-          '/lists/' +
-          configurationListId +
-          '/items?$expand=fields'
+        sharepointSiteId +
+        '/lists/' +
+        configurationListId +
+        '/items?$expand=fields'
       );
       _configuration = {};
       response.graphClientMessage.value.forEach(function (item) {
