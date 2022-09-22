@@ -99,10 +99,10 @@ export async function getConfiguration() {
     if (!_configuration) {
       const response = await apiGet(
         '/sites/' +
-        sharepointSiteId +
-        '/lists/' +
-        configurationListId +
-        '/items?$expand=fields'
+          sharepointSiteId +
+          '/lists/' +
+          configurationListId +
+          '/items?$expand=fields'
       );
       _configuration = {};
       response.graphClientMessage.value.forEach(function (item) {
