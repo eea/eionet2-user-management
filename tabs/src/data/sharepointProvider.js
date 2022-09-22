@@ -39,10 +39,10 @@ export async function getMappingsList() {
     if (!mappingsList) {
       const response = await apiGet(
         '/sites/' +
-        sharepointSiteId +
-        '/lists/' +
-        config.MappingListId +
-        '/items?$expand=fields'
+          sharepointSiteId +
+          '/lists/' +
+          config.MappingListId +
+          '/items?$expand=fields'
       );
       mappingsList = response.graphClientMessage.value.map(function (mapping) {
         return {
@@ -107,13 +107,13 @@ export async function getSPUserByMail(email) {
   const config = await getConfiguration();
   try {
     const path =
-      '/sites/' +
-      sharepointSiteId +
-      '/lists/' +
-      config.UserListId +
-      "/items?$filter=fields/Email eq '" +
-      email +
-      "'&$expand=fields",
+        '/sites/' +
+        sharepointSiteId +
+        '/lists/' +
+        config.UserListId +
+        "/items?$filter=fields/Email eq '" +
+        email +
+        "'&$expand=fields",
       response = await apiGet(path),
       profile = response.graphClientMessage;
     if (profile.value && profile.value.length) {

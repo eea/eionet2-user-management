@@ -45,57 +45,59 @@ export function UserList({ userInfo }) {
     [searchOpen, setSearchOpen] = useState(false);
 
   const renderButtons = (params) => {
-    return (
-      <div className="row">
-        <strong>
-          <Tooltip title="Edit">
-            <IconButton
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId);
+      return (
+        <div className="row">
+          <strong>
+            <Tooltip title="Edit">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId);
 
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    setSelectedUser(user);
+                    setFormVisible(true);
+                  } else {
+                    setAlertOpen(true);
+                  }
+                }}
+              >
+                <CreateIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Remove">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId),
+                      groupsString = await getUserGroups(user.ADUserId);
+
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    user.groupsString = groupsString;
+                  }
                   setSelectedUser(user);
-                  setFormVisible(true);
-                } else {
-                  setAlertOpen(true);
-                }
-              }}
-            ><CreateIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Remove">
-            <IconButton
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId),
-                    groupsString = await getUserGroups(user.ADUserId);
-
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
-                  user.groupsString = groupsString;
-                }
-                setSelectedUser(user);
-                setDeleteAlertOpen(true);
-              }}
-            ><DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </strong>
-      </div>
-    );
-  },
+                  setDeleteAlertOpen(true);
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </strong>
+        </div>
+      );
+    },
     handleAlertClose = (event, reason) => {
       if (reason === 'clickaway') {
         return;
@@ -137,7 +139,7 @@ export function UserList({ userInfo }) {
     renderSignedIn = (params) => {
       let value = params.row.SignedIn || false;
 
-      return (<Checkbox disabled checked={value}></Checkbox>);
+      return <Checkbox disabled checked={value}></Checkbox>;
     },
     refreshRow = async () => {
       let invitedUsers = await getInvitedUsers(userInfo);
@@ -191,7 +193,7 @@ export function UserList({ userInfo }) {
       field: 'SignedIn',
       headerName: 'Signed In',
       renderCell: renderSignedIn,
-      flex: 0.25
+      flex: 0.25,
     },
     {
       field: 'Edit',
@@ -412,7 +414,9 @@ export function UserList({ userInfo }) {
             </IconButton>
           </DialogTitle>
           <div className="page-padding">
-            <UserInvite userInfo={userInfo} refreshRow={refreshRow}> </UserInvite>
+            <UserInvite userInfo={userInfo} refreshRow={refreshRow}>
+              {' '}
+            </UserInvite>
           </div>
         </Dialog>
       </Box>
