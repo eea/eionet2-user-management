@@ -13,11 +13,12 @@ import {
   Button,
 } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
-import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export function UserInvite({ userInfo }) {
+export function UserInvite({ userInfo, refreshRow }) {
   const [inputEmail, setInputEmail] = useState(''),
     [formVisible, setFormVisible] = useState(false),
+    [emailCheckVisible, setEmailCheckVisible] = useState(true),
     [warningVisible, setWarningVisible] = useState(false),
     [warningText, setWarningText] = useState(''),
     [loading, setLoading] = useState(false);
@@ -55,11 +56,11 @@ export function UserInvite({ userInfo }) {
   }, [selectedUser, userInfo]);
 
   const onInputEmailChange = (e) => {
-      setInputEmail(e.target.value);
-      setSelectedUser(defaultUser);
-      setWarningVisible(false);
-      setFormVisible(false);
-    },
+    setInputEmail(e.target.value);
+    setSelectedUser(defaultUser);
+    setWarningVisible(false);
+    setFormVisible(false);
+  },
     onCheckEmail = async () => {
       setFormVisible(false);
       setLoading(true);
@@ -76,6 +77,7 @@ export function UserInvite({ userInfo }) {
           selectedUser.Email = inputEmail;
           selectedUser.ADProfile = response.ADUser;
           setFormVisible(response.Continue);
+          setEmailCheckVisible(!response.Continue);
         }
       } else {
         setWarningText(messages.UserInvite.InvalidEmail);
@@ -84,14 +86,16 @@ export function UserInvite({ userInfo }) {
       setLoading(false);
     },
     inviteUser = async () => {
-      return await sendInvitation(selectedUser, mapppings);
+      let result = await sendInvitation(selectedUser, mapppings);
+      refreshRow && await refreshRow();
+      return result;
     };
 
   return (
     <div className="welcome page main">
       <div className="page-size">
         <div className="row">
-          <Box
+          {emailCheckVisible && <Box
             component="form"
             sx={{
               '& .MuiTextField-root': { m: 1, width: '50ch' },
@@ -128,10 +132,10 @@ export function UserInvite({ userInfo }) {
                   className="check-button"
                   disabled={loading}
                   endIcon={
-                    loading ? <HourglassTopIcon /> : <PersonSearchIcon />
+                    loading ? <HourglassTopIcon /> : <GroupAddIcon />
                   }
                 >
-                  Check
+                  Invite user
                 </Button>
                 {loading && (
                   <CircularProgress
@@ -153,7 +157,7 @@ export function UserInvite({ userInfo }) {
                 </FormLabel>
               )}
             </div>
-          </Box>
+          </Box>}
         </div>
         {formVisible && (
           <Box

@@ -45,47 +45,47 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
   const [unspecifiedOrg, setUnspecifiedOrg] = useState(false);
 
   const submit = async (e) => {
-      if (!loading) {
-        e.preventDefault();
-        let tempErrors = validateForm();
-        setWarningVisible(false);
-        if (
-          (!tempErrors ||
-            !Object.values(tempErrors).some((v) => {
-              return v;
-            })) &&
-          validateMembership()
-        ) {
-          setSuccess(false);
-          setLoading(true);
-          if (saveFunction) {
-            let result = await saveFunction();
-            if (!result.Success) {
-              setWarningText(result.Message + '\n' + result.Error);
-              setWarningVisible(true);
-              setSuccess(false);
-            } else {
-              setWarningText('');
-              setWarningVisible(false);
-            }
+    if (!loading) {
+      e.preventDefault();
+      let tempErrors = validateForm();
+      setWarningVisible(false);
+      if (
+        (!tempErrors ||
+          !Object.values(tempErrors).some((v) => {
+            return v;
+          })) &&
+        validateMembership()
+      ) {
+        setSuccess(false);
+        setLoading(true);
+        if (saveFunction) {
+          let result = await saveFunction();
+          if (!result.Success) {
+            setWarningText(result.Message + '\n' + result.Error);
+            setWarningVisible(true);
+            setSuccess(false);
           } else {
-            let result = await editUser(user, mappings, oldValues);
-            if (!result.Success) {
-              setWarningText(result.Message + '\n' + result.Error);
-              setWarningVisible(true);
-              setSuccess(false);
-            } else {
-              setOldValues(JSON.parse(JSON.stringify(user)));
-              (await refreshRow) && refreshRow();
-              setWarningText('');
-              setWarningVisible(false);
-            }
+            setWarningText('');
+            setWarningVisible(false);
           }
-          setSuccess(true);
-          setLoading(false);
+        } else {
+          let result = await editUser(user, mappings, oldValues);
+          if (!result.Success) {
+            setWarningText(result.Message + '\n' + result.Error);
+            setWarningVisible(true);
+            setSuccess(false);
+          } else {
+            setOldValues(JSON.parse(JSON.stringify(user)));
+            (await refreshRow) && refreshRow();
+            setWarningText('');
+            setWarningVisible(false);
+          }
         }
+        setSuccess(true);
+        setLoading(false);
       }
-    },
+    }
+  },
     loadOrganisations = async () => {
       let organisations = await getOrganisationList(user.Country);
       if (organisations) {
@@ -464,7 +464,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 disabled={loading || (newYN && success)}
                 endIcon={success ? <CheckIcon /> : <SaveIcon />}
               >
-                Save
+                {newYN ? 'Save and send invitation' : 'Update user'}
               </Button>
               {loading && (
                 <CircularProgress

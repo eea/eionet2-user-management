@@ -75,24 +75,23 @@ export async function apiDelete(path, credentialType = 'app') {
   }
 }
 
-var _userId = undefined;
-export async function getUserId() {
-  if (!_userId) {
+var _userMail = undefined;
+export async function getUserMail() {
+  if (!_userMail) {
     const response = await apiGet(
       'me?$select=id,displayName,mail,mobilePhone,country',
       'user'
     );
 
     if (response.graphClientMessage) {
-      _userId = response.graphClientMessage.id;
+      _userMail = response.graphClientMessage.mail;
     }
   }
-  return _userId;
+  return _userMail;
 }
 
-const sharepointSiteId =
-    '7lcpdm.sharepoint.com,bf9359de-0f13-4b00-8b5a-114f6ef3bfb0,6609a994-5225-4a1d-bd05-a239c7b45f72',
-  configurationListId = '010b1be2-0df5-4ab1-b2a7-17e010aae775';
+var sharepointSiteId = process.env.REACT_APP_SHAREPOINT_SITE_ID,
+  configurationListId = process.env.REACT_APP_ONFIGURATION_LIST_ID;
 
 var _configuration = undefined;
 export async function getConfiguration() {
@@ -100,10 +99,10 @@ export async function getConfiguration() {
     if (!_configuration) {
       const response = await apiGet(
         '/sites/' +
-          sharepointSiteId +
-          '/lists/' +
-          configurationListId +
-          '/items?$expand=fields'
+        sharepointSiteId +
+        '/lists/' +
+        configurationListId +
+        '/items?$expand=fields'
       );
       _configuration = {};
       response.graphClientMessage.value.forEach(function (item) {
@@ -120,7 +119,7 @@ export async function getConfiguration() {
 
 export async function logError(err, apiPath, data) {
   const spConfig = await getConfiguration(),
-    userId = await getUserId();
+    userMail = await getUserMail();
 
   let fields = {
     fields: {
@@ -128,7 +127,7 @@ export async function logError(err, apiPath, data) {
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
       Title: err.response?.data?.error?.body,
-      UserId: userId,
+      UserMail: userMail,
       Timestamp: new Date(),
       Logtype: 'Error',
     },
@@ -145,7 +144,7 @@ export async function logError(err, apiPath, data) {
 
 export async function logInfo(message, apiPath, data, action) {
   const spConfig = await getConfiguration(),
-    userId = await getUserId();
+    userMail = await getUserMail();
 
   let fields = {
     fields: {
@@ -153,7 +152,7 @@ export async function logInfo(message, apiPath, data, action) {
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
       Title: message,
-      UserId: userId,
+      UserMail: userMail,
       Timestamp: new Date(),
       Logtype: 'Info',
       Action: action,
