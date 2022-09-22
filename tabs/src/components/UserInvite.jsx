@@ -13,11 +13,12 @@ import {
   Button,
 } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
-import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export function UserInvite({ userInfo }) {
+export function UserInvite({ userInfo, refreshRow }) {
   const [inputEmail, setInputEmail] = useState(''),
     [formVisible, setFormVisible] = useState(false),
+    [emailCheckVisible, setEmailCheckVisible] = useState(true),
     [warningVisible, setWarningVisible] = useState(false),
     [warningText, setWarningText] = useState(''),
     [loading, setLoading] = useState(false);
@@ -76,6 +77,7 @@ export function UserInvite({ userInfo }) {
           selectedUser.Email = inputEmail;
           selectedUser.ADProfile = response.ADUser;
           setFormVisible(response.Continue);
+          setEmailCheckVisible(!response.Continue);
         }
       } else {
         setWarningText(messages.UserInvite.InvalidEmail);
@@ -84,76 +86,78 @@ export function UserInvite({ userInfo }) {
       setLoading(false);
     },
     inviteUser = async () => {
-      return await sendInvitation(selectedUser, mapppings);
+      let result = await sendInvitation(selectedUser, mapppings);
+      refreshRow && (await refreshRow());
+      return result;
     };
 
   return (
     <div className="welcome page main">
       <div className="page-size">
         <div className="row">
-          <Box
-            component="form"
-            sx={{
-              '& .MuiTextField-root': { m: 1, width: '50ch' },
-              boxShadow: 2,
-              padding: '1rem',
-              width: '100%',
-              alignItems: 'center',
-            }}
-            autoComplete="off"
-            noValidate
-            onSubmit={(e) => {
-              e.preventDefault();
-              onCheckEmail();
-            }}
-          >
-            <h2>Invite user to join Eionet team</h2>
-            <div className="row">
-              <TextField
-                required
-                className="control"
-                id="firstName"
-                label="Email"
-                variant="standard"
-                onChange={(e) => {
-                  onInputEmailChange(e);
-                }}
-              />
-              <Box sx={{ m: 1, position: 'relative' }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="secondary"
-                  size="medium"
-                  className="check-button"
-                  disabled={loading}
-                  endIcon={
-                    loading ? <HourglassTopIcon /> : <PersonSearchIcon />
-                  }
-                >
-                  Check
-                </Button>
-                {loading && (
-                  <CircularProgress
-                    size={24}
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      marginTop: '-12px',
-                      marginLeft: '-12px',
-                    }}
-                  />
-                )}
-              </Box>
+          {emailCheckVisible && (
+            <Box
+              component="form"
+              sx={{
+                '& .MuiTextField-root': { m: 1, width: '50ch' },
+                boxShadow: 2,
+                padding: '1rem',
+                width: '100%',
+                alignItems: 'center',
+              }}
+              autoComplete="off"
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                onCheckEmail();
+              }}
+            >
+              <h2>Invite user to join Eionet team</h2>
+              <div className="row">
+                <TextField
+                  required
+                  className="control"
+                  id="firstName"
+                  label="Email"
+                  variant="standard"
+                  onChange={(e) => {
+                    onInputEmailChange(e);
+                  }}
+                />
+                <Box sx={{ m: 1, position: 'relative' }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="secondary"
+                    size="medium"
+                    className="check-button"
+                    disabled={loading}
+                    endIcon={loading ? <HourglassTopIcon /> : <GroupAddIcon />}
+                  >
+                    Invite user
+                  </Button>
+                  {loading && (
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        marginTop: '-12px',
+                        marginLeft: '-12px',
+                      }}
+                    />
+                  )}
+                </Box>
 
-              {warningVisible && (
-                <FormLabel className="note-label warning" error>
-                  {warningText}
-                </FormLabel>
-              )}
-            </div>
-          </Box>
+                {warningVisible && (
+                  <FormLabel className="note-label warning" error>
+                    {warningText}
+                  </FormLabel>
+                )}
+              </div>
+            </Box>
+          )}
         </div>
         {formVisible && (
           <Box

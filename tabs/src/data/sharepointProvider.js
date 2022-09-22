@@ -165,6 +165,7 @@ export async function getInvitedUsers(userInfo) {
           ? genderList.find((g) => g.id === user.fields.Gender).label
           : '',
         NFP: user.fields.NFP,
+        SignedIn: user.fields.SignedIn,
         SuggestedOrganisation: user.fields.SuggestedOrganisation,
         id: user.fields.id,
       };

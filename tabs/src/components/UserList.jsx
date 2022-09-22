@@ -20,11 +20,14 @@ import {
   Box,
   Alert,
   Snackbar,
+  Checkbox,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import InfoIcon from '@mui/icons-material/Info';
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 
@@ -38,58 +41,59 @@ export function UserList({ userInfo }) {
     [deleteAlertOpen, setDeleteAlertOpen] = useState(false),
     [alertOpen, setAlertOpen] = useState(false),
     [snackbarOpen, setSnackbarOpen] = useState(false),
-    [loading, setloading] = useState(false);
+    [loading, setloading] = useState(false),
+    [searchOpen, setSearchOpen] = useState(false);
 
   const renderButtons = (params) => {
       return (
         <div className="row">
           <strong>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              style={{ marginLeft: 16 }}
-              endIcon={<CreateIcon />}
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId);
+            <Tooltip title="Edit">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId);
 
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    setSelectedUser(user);
+                    setFormVisible(true);
+                  } else {
+                    setAlertOpen(true);
+                  }
+                }}
+              >
+                <CreateIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Remove">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId),
+                      groupsString = await getUserGroups(user.ADUserId);
+
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    user.groupsString = groupsString;
+                  }
                   setSelectedUser(user);
-                  setFormVisible(true);
-                } else {
-                  setAlertOpen(true);
-                }
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              style={{ marginLeft: 16 }}
-              endIcon={<DeleteIcon />}
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId),
-                    groupsString = await getUserGroups(user.ADUserId);
-
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
-                  user.groupsString = groupsString;
-                }
-                setSelectedUser(user);
-                setDeleteAlertOpen(true);
-              }}
-            >
-              Remove
-            </Button>
+                  setDeleteAlertOpen(true);
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
           </strong>
         </div>
       );
@@ -112,6 +116,12 @@ export function UserList({ userInfo }) {
     handleDeleteNo = () => {
       setDeleteAlertOpen(false);
     },
+    handleSearchDialog = () => {
+      setSearchOpen(true);
+    },
+    handleSearchClose = () => {
+      setSearchOpen(false);
+    },
     renderMembershipTags = (params) => {
       let index = 0;
       return (
@@ -125,6 +135,11 @@ export function UserList({ userInfo }) {
         params.row.OtherMemberships &&
         params.row.OtherMemberships.map((m) => <Chip key={index++} label={m} />)
       );
+    },
+    renderSignedIn = (params) => {
+      let value = params.row.SignedIn || false;
+
+      return <Checkbox disabled checked={value}></Checkbox>;
     },
     refreshRow = async () => {
       let invitedUsers = await getInvitedUsers(userInfo);
@@ -157,13 +172,13 @@ export function UserList({ userInfo }) {
       setSnackbarOpen(false);
     };
   const columns = [
-    { field: 'Title', headerName: 'Name', flex: 1 },
-    { field: 'Email', headerName: 'Email', flex: 1 },
+    { field: 'Title', headerName: 'Name', flex: 0.75 },
+    { field: 'Email', headerName: 'Email', flex: 0.75 },
     {
       field: 'MembershipString',
       headerName: 'Eionet groups',
       renderCell: renderMembershipTags,
-      flex: 1,
+      flex: 1.25,
     },
     {
       field: 'OtherMembershipsString',
@@ -171,13 +186,19 @@ export function UserList({ userInfo }) {
       renderCell: renderOtherMembershipsTags,
       flex: 1,
     },
-    { field: 'Country', headerName: 'Country', flex: 0.5 },
-    { field: 'NFP', headerName: 'NFP', flex: 0.5 },
+    { field: 'Country', headerName: 'Country', flex: 0.25 },
+    { field: 'NFP', headerName: 'NFP', flex: 0.35 },
     { field: 'Organisation', headerName: 'Organisation', flex: 1 },
+    {
+      field: 'SignedIn',
+      headerName: 'Signed In',
+      renderCell: renderSignedIn,
+      flex: 0.25,
+    },
     {
       field: 'Edit',
       headerName: '',
-      width: 250,
+      width: 85,
       renderCell: renderButtons,
       disableClickEventBubbling: true,
     },
@@ -228,6 +249,15 @@ export function UserList({ userInfo }) {
         >
           <CircularProgress color="inherit" />
         </Backdrop>
+        <Dialog open={searchOpen} onClose={handleSearchClose} maxWidth="xl">
+          <Alert
+            onClose={handleSearchClose}
+            severity="info"
+            sx={{ width: '100%' }}
+          >
+            {configuration.UserListSearchInfo}
+          </Alert>
+        </Dialog>
         <Dialog open={alertOpen} onClose={handleAlertClose} maxWidth="xl">
           <Alert
             onClose={handleAlertClose}
@@ -286,7 +316,7 @@ export function UserList({ userInfo }) {
                 setAddFormVisible(true);
               }}
             >
-              Add
+              Invite user
             </Button>
           </div>
           <div className="search-bar">
@@ -318,6 +348,17 @@ export function UserList({ userInfo }) {
                 );
               }}
             />
+            <IconButton
+              aria-label="close"
+              onClick={handleSearchDialog}
+              sx={{
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
+              }}
+            >
+              <InfoIcon />
+            </IconButton>
           </div>
         </div>
         <div className="user-list">
@@ -373,7 +414,9 @@ export function UserList({ userInfo }) {
             </IconButton>
           </DialogTitle>
           <div className="page-padding">
-            <UserInvite userInfo={userInfo}> </UserInvite>
+            <UserInvite userInfo={userInfo} refreshRow={refreshRow}>
+              {' '}
+            </UserInvite>
           </div>
         </Dialog>
       </Box>

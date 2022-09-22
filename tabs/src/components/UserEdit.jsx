@@ -464,7 +464,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 disabled={loading || (newYN && success)}
                 endIcon={success ? <CheckIcon /> : <SaveIcon />}
               >
-                Save
+                {newYN ? 'Save and send invitation' : 'Update user'}
               </Button>
               {loading && (
                 <CircularProgress

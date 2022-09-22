@@ -565,7 +565,8 @@ export async function editUser(user, mappings, oldValues) {
 
 export async function removeUser(user) {
   if (user) {
-    const mappings = await getMappingsList();
+    const mappings = await getMappingsList(),
+      config = await getConfiguration();
 
     if (user.ADUserId) {
       try {
@@ -585,6 +586,16 @@ export async function removeUser(user) {
             50
           );
         });
+
+        if (user.NFP) {
+          await apiDelete(
+            '/groups/' +
+              config.NFPGroupId +
+              '/members/' +
+              user.ADUserId +
+              '/$ref'
+          );
+        }
       } catch (err) {
         return wrapError(err, messages.UserDelete.Errors.Groups);
       }
