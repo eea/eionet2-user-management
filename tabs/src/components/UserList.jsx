@@ -125,8 +125,19 @@ export function UserList({ userInfo }) {
     renderMembershipTags = (params) => {
       let index = 0;
       return (
-        params.row.Membership &&
-        params.row.Membership.map((m) => <Chip key={index++} label={m} />)
+        <Tooltip
+          title={
+            (params.row.Membership && params.row.Membership.join(', ')) || ''
+          }
+          arrow
+        >
+          <div id="test">
+            {params.row.Membership &&
+              params.row.Membership.map((m) => (
+                <Chip key={index++} label={m} />
+              ))}
+          </div>
+        </Tooltip>
       );
     },
     renderOtherMembershipsTags = (params) => {
