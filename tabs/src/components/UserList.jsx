@@ -45,59 +45,59 @@ export function UserList({ userInfo }) {
     [searchOpen, setSearchOpen] = useState(false);
 
   const renderButtons = (params) => {
-    return (
-      <div className="row">
-        <strong>
-          <Tooltip title="Edit">
-            <IconButton
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId);
+      return (
+        <div className="row">
+          <strong>
+            <Tooltip title="Edit">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId);
 
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    setSelectedUser(user);
+                    setFormVisible(true);
+                  } else {
+                    setAlertOpen(true);
+                  }
+                }}
+              >
+                <CreateIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Remove">
+              <IconButton
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={async () => {
+                  setFormVisible(false);
+                  const user = params.row;
+                  if (user.ADUserId) {
+                    const userDetails = await getUser(user.ADUserId),
+                      groupsString = await getUserGroups(user.ADUserId);
+
+                    user.FirstName = userDetails.givenName;
+                    user.LastName = userDetails.surname;
+                    user.groupsString = groupsString;
+                  }
                   setSelectedUser(user);
-                  setFormVisible(true);
-                } else {
-                  setAlertOpen(true);
-                }
-              }}
-            >
-              <CreateIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Remove">
-            <IconButton
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={async () => {
-                setFormVisible(false);
-                const user = params.row;
-                if (user.ADUserId) {
-                  const userDetails = await getUser(user.ADUserId),
-                    groupsString = await getUserGroups(user.ADUserId);
-
-                  user.FirstName = userDetails.givenName;
-                  user.LastName = userDetails.surname;
-                  user.groupsString = groupsString;
-                }
-                setSelectedUser(user);
-                setDeleteAlertOpen(true);
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </strong>
-      </div>
-    );
-  },
+                  setDeleteAlertOpen(true);
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </strong>
+        </div>
+      );
+    },
     handleAlertClose = (event, reason) => {
       if (reason === 'clickaway') {
         return;
@@ -124,14 +124,21 @@ export function UserList({ userInfo }) {
     },
     renderMembershipTags = (params) => {
       let index = 0;
-      return <Tooltip title={params.row.Membership && params.row.Membership.join(', ') || ''} arrow>
-        <div id='test'>
-          {(
-            params.row.Membership &&
-            params.row.Membership.map((m) => <Chip key={index++} label={m} />)
-          )}
-        </div>
-      </Tooltip>;
+      return (
+        <Tooltip
+          title={
+            (params.row.Membership && params.row.Membership.join(', ')) || ''
+          }
+          arrow
+        >
+          <div id="test">
+            {params.row.Membership &&
+              params.row.Membership.map((m) => (
+                <Chip key={index++} label={m} />
+              ))}
+          </div>
+        </Tooltip>
+      );
     },
     renderOtherMembershipsTags = (params) => {
       let index = 0;

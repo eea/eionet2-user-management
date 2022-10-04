@@ -1,14 +1,11 @@
 import { apiGet, getConfiguration } from './apiProvider';
 
-const sharepointSiteId =
-  '7lcpdm.sharepoint.com,bf9359de-0f13-4b00-8b5a-114f6ef3bfb0,6609a994-5225-4a1d-bd05-a239c7b45f72';
-
 export async function getOrganisationList(country) {
   const config = await getConfiguration();
   try {
     let path =
       '/sites/' +
-      sharepointSiteId +
+      config.SharepointSiteId +
       '/lists/' +
       config.OrganisationListId +
       '/items?$expand=fields';
@@ -39,7 +36,7 @@ export async function getMappingsList() {
     if (!mappingsList) {
       const response = await apiGet(
         '/sites/' +
-          sharepointSiteId +
+          config.SharepointSiteId +
           '/lists/' +
           config.MappingListId +
           '/items?$expand=fields'
@@ -69,7 +66,11 @@ export async function getComboLists() {
   let lists = {};
   try {
     const response = await apiGet(
-      '/sites/' + sharepointSiteId + '/lists/' + config.UserListId + '/columns'
+      '/sites/' +
+        config.SharepointSiteId +
+        '/lists/' +
+        config.UserListId +
+        '/columns'
     );
     const columns = response.graphClientMessage.value;
     var genderColumn = columns.find((column) => column.name === 'Gender');
@@ -108,7 +109,7 @@ export async function getSPUserByMail(email) {
   try {
     const path =
         '/sites/' +
-        sharepointSiteId +
+        config.SharepointSiteId +
         '/lists/' +
         config.UserListId +
         "/items?$filter=fields/Email eq '" +
@@ -130,7 +131,7 @@ export async function getInvitedUsers(userInfo) {
   try {
     let path =
       '/sites/' +
-      sharepointSiteId +
+      config.SharepointSiteId +
       '/lists/' +
       config.UserListId +
       '/items?$expand=fields&$top=999';

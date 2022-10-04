@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import * as microsoftTeams from '@microsoft/teams-js';
-import { Autocomplete, TextField } from '@mui/material';
 
 /**
  * The 'Config' component is used to display your group tabs
@@ -10,20 +9,6 @@ import { Autocomplete, TextField } from '@mui/material';
  * their choices and communicate that to Teams to enable the save button.
  */
 class TabConfig extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selectedTab: {},
-      configuredTabs: [
-        {
-          suggestedDisplayName: 'Manage users',
-          entityId: 'EditUser',
-          urlSuffix: 'edittab',
-        },
-      ],
-    };
-  }
-
   render() {
     // Initialize the Microsoft Teams SDK
     microsoftTeams.initialize();
@@ -35,15 +20,12 @@ class TabConfig extends React.Component {
      */
     microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
       const baseUrl = `https://${window.location.hostname}:${window.location.port}`;
-      const tab = this.state.selectedTab;
-      if (tab)
-        microsoftTeams.settings.setSettings({
-          suggestedDisplayName: tab.suggestedDisplayName,
-          entityId: tab.entityId,
-          contentUrl: baseUrl + '/index.html#/' + tab.urlSuffix,
-          websiteUrl: baseUrl + '/index.html#/' + tab.urlSuffix,
-        });
-
+      microsoftTeams.settings.setSettings({
+        suggestedDisplayName: 'Manage users',
+        entityId: 'EditUser',
+        contentUrl: baseUrl + '/index.html#/edittab',
+        websiteUrl: baseUrl + '/index.html#/edittab',
+      });
       saveEvent.notifySuccess();
     });
 
@@ -53,29 +35,12 @@ class TabConfig extends React.Component {
      * to be valid.  This will enable the save button in the configuration
      * dialog.
      */
-    microsoftTeams.settings.setValidityState(this.state.selectedTab);
+    microsoftTeams.settings.setValidityState(true);
 
     return (
       <div>
         <h1>Tab Configuration</h1>
-        <div>
-          <Autocomplete
-            disablePortal
-            id="combo-box-tabs"
-            defaultValue={this.state.configuredTabs[0]}
-            options={this.state.configuredTabs}
-            getOptionLabel={(option) => option.suggestedDisplayName}
-            isOptionEqualToValue={(option, value) =>
-              option.entityId === value.entityId
-            }
-            onChange={(e, value) => {
-              this.setState({ selectedTab: value });
-            }}
-            renderInput={(params) => (
-              <TextField required {...params} label="Tab" variant="standard" />
-            )}
-          />
-        </div>
+        <div></div>
       </div>
     );
   }
