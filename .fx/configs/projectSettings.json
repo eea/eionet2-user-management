@@ -3,7 +3,7 @@
     "projectId": "d158b86f-f64a-40dc-94ee-8a05c20f4f36",
     "solutionSettings": {
         "name": "fx-solution-azure",
-        "version": "1.0.4",
+        "version": "1.0.0",
         "hostType": "Azure",
         "azureResources": [
             "function"
@@ -13,17 +13,71 @@
             "TabSSO"
         ],
         "activeResourcePlugins": [
-            "fx-resource-frontend-hosting",
-            "fx-resource-identity",
-            "fx-resource-aad-app-for-teams",
-            "fx-resource-function",
             "fx-resource-local-debug",
             "fx-resource-appstudio",
-            "fx-resource-simple-auth"
+            "fx-resource-cicd",
+            "fx-resource-api-connector",
+            "fx-resource-aad-app-for-teams",
+            "fx-resource-frontend-hosting",
+            "fx-resource-identity",
+            "fx-resource-simple-auth",
+            "fx-resource-function"
         ]
     },
     "version": "2.0.0",
     "isFromSample": false,
     "programmingLanguage": "javascript",
-    "defaultFunctionName": "getGraphData"
+    "defaultFunctionName": "getGraphData",
+    "components": [
+        {
+            "name": "aad-app",
+            "provision": true,
+            "deploy": true
+        },
+        {
+            "hosting": "azure-storage",
+            "name": "teams-tab",
+            "build": true,
+            "provision": true,
+            "folder": "tabs",
+            "sso": true,
+            "deploy": true,
+            "artifactFolder": "tabs/build"
+        },
+        {
+            "name": "azure-storage",
+            "connections": [
+                "teams-tab"
+            ],
+            "provision": true
+        },
+        {
+            "name": "identity"
+        },
+        {
+            "name": "simple-auth",
+            "provision": true
+        },
+        {
+            "name": "teams-api",
+            "hosting": "azure-function",
+            "functionNames": [
+                "getGraphData"
+            ],
+            "build": true,
+            "folder": "api",
+            "deploy": true,
+            "artifactFolder": "api"
+        },
+        {
+            "name": "azure-function",
+            "scenario": "Api",
+            "connections": [
+                "identity",
+                "aad-app",
+                "teams-tab",
+                "teams-api"
+            ]
+        }
+    ]
 }
