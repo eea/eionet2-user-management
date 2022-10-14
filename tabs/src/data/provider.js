@@ -290,12 +290,15 @@ export async function sendInvitation(user, mappings) {
     let userId = undefined,
       invitationResponse = undefined,
       sendMail = false,
-      teamsURLs = '\n';
+      onlyNFP = false,
+      teamsURLs = undefined;
 
     if (user.NFP && !firstMapping) {
       firstMapping = mappings.find(
         (m) => m.O365GroupId === config.MainEionetGroupId
       );
+      teamsURLs = firstMapping.TeamURL;
+      onlyNFP = true;
     }
 
     if (!user.ADProfile) {
@@ -326,6 +329,11 @@ export async function sendInvitation(user, mappings) {
       }
     } else {
       userId = user.ADProfile.id;
+      try {
+        saveADUser(userId, user);
+      } catch (err) {
+        return wrapError(err, messages.UserEdit.Errors.ADUser);
+      }
       sendMail = true;
     }
 
@@ -355,6 +363,8 @@ export async function sendInvitation(user, mappings) {
 
           try {
             await addTag(config.MainEionetGroupId, 'NFP', userId);
+            onlyNFP &&
+              (await addTag(config.MainEionetGroupId, user.Country, userId));
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
           }
@@ -406,7 +416,7 @@ export async function sendInvitation(user, mappings) {
                 subject: config.AddedToTeamsMailSubject,
                 body: {
                   contentType: 'Text',
-                  content: config.AddedToTeamsMailBody + teamsURLs,
+                  content: config.AddedToTeamsMailBody + ' ' + teamsURLs,
                 },
                 toRecipients: [
                   {
