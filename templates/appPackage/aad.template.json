@@ -49,6 +49,10 @@
                     "type": "Role"
                 },
                 {
+                    "id": "TeamworkTag.ReadWrite.All",
+                    "type": "Role"
+                },
+                {
                     "id": "User.Read",
                     "type": "Scope"
                 }

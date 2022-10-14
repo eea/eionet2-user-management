@@ -123,28 +123,22 @@ export function UserList({ userInfo }) {
       setSearchOpen(false);
     },
     renderMembershipTags = (params) => {
-      let index = 0;
+      let index = 0,
+        allMemberships = [];
+
+      params.row.Membership &&
+        params.row.Membership.forEach((m) => allMemberships.push(m));
+      params.row.OtherMemberships &&
+        params.row.OtherMemberships.forEach((m) => allMemberships.push(m));
+      params.row.NFP && allMemberships.push(params.row.NFP);
       return (
-        <Tooltip
-          title={
-            (params.row.Membership && params.row.Membership.join(', ')) || ''
-          }
-          arrow
-        >
+        <Tooltip title={allMemberships.join(', ') || ''} arrow>
           <div id="test">
-            {params.row.Membership &&
-              params.row.Membership.map((m) => (
-                <Chip key={index++} label={m} />
-              ))}
+            {allMemberships.map((m) => (
+              <Chip key={index++} label={m} />
+            ))}
           </div>
         </Tooltip>
-      );
-    },
-    renderOtherMembershipsTags = (params) => {
-      let index = 0;
-      return (
-        params.row.OtherMemberships &&
-        params.row.OtherMemberships.map((m) => <Chip key={index++} label={m} />)
       );
     },
     renderSignedIn = (params) => {
@@ -187,18 +181,11 @@ export function UserList({ userInfo }) {
     { field: 'Email', headerName: 'Email', flex: 0.75 },
     {
       field: 'MembershipString',
-      headerName: 'Eionet groups',
+      headerName: 'Memberships',
       renderCell: renderMembershipTags,
       flex: 1.25,
     },
-    {
-      field: 'OtherMembershipsString',
-      headerName: 'Other memberships',
-      renderCell: renderOtherMembershipsTags,
-      flex: 1,
-    },
     { field: 'Country', headerName: 'Country', flex: 0.25 },
-    { field: 'NFP', headerName: 'NFP', flex: 0.35 },
     { field: 'Organisation', headerName: 'Organisation', flex: 1 },
     {
       field: 'SignedIn',
