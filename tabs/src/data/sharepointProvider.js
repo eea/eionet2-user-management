@@ -147,6 +147,7 @@ export async function getInvitedUsers(userInfo) {
         (o) => o.content === user.fields.OrganisationLookupId
       );
 
+      //concatenate memberships, otherMemberships and NFP in one field to display in grid
       let memberships = (user.fields.Membership || []).concat(
         user.fields.OtherMemberships || []
       );
