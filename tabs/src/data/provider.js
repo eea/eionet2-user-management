@@ -17,7 +17,7 @@ function wrapError(err, message) {
   };
 }
 
-var _profile = undefined;
+let _profile = undefined;
 export async function getMe() {
   if (!_profile) {
     const config = await getConfiguration(),
@@ -102,7 +102,7 @@ export async function getUserGroups(userId) {
 }
 
 async function addTag(teamId, name, userId) {
-  var response = await apiGet(
+  let response = await apiGet(
     '/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'"
   );
 
@@ -481,7 +481,7 @@ export async function editUser(user, mappings, oldValues) {
           50
         );
 
-        var groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
+        const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
         if (groupMapping[0].Tag) addTag(groupId, user.Country, user.ADUserId);
       }
     });
