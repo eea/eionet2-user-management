@@ -235,7 +235,7 @@ async function sendOrgSuggestionNotification(info) {
   }
 }
 
-async function saveSPUser(userId, userData, newYN) {
+async function saveSPUser(userId, userData, newYN, oldValues) {
   const spConfig = await getConfiguration();
   let fields = {
     fields: {
@@ -273,7 +273,11 @@ async function saveSPUser(userId, userData, newYN) {
     await apiPatch(graphURL, fields);
   }
 
-  if (userData.SuggestedOrganisation) {
+  let organisationChanged =
+    oldValues &&
+    userData.SuggestedOrganisation &&
+    userData.SuggestedOrganisation != oldValues.SuggestedOrganisation;
+  if (newYN || organisationChanged) {
     sendOrgSuggestionNotification(userData.SuggestedOrganisation);
   }
 }
@@ -562,7 +566,7 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     try {
-      await saveSPUser(user.ADUserId, user, false);
+      await saveSPUser(user.ADUserId, user, false, oldValues);
     } catch (err) {
       return wrapError(err, messages.UserEdit.Errors.SharepointUser);
     }
