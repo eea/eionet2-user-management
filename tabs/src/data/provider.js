@@ -17,7 +17,7 @@ function wrapError(err, message) {
   };
 }
 
-var _profile = undefined;
+let _profile = undefined;
 export async function getMe() {
   if (!_profile) {
     const config = await getConfiguration(),
@@ -102,7 +102,7 @@ export async function getUserGroups(userId) {
 }
 
 async function addTag(teamId, name, userId) {
-  var response = await apiGet(
+  let response = await apiGet(
     '/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'"
   );
 
@@ -235,7 +235,7 @@ async function sendOrgSuggestionNotification(info) {
   }
 }
 
-async function saveSPUser(userId, userData, newYN) {
+async function saveSPUser(userId, userData, newYN, oldValues) {
   const spConfig = await getConfiguration();
   let fields = {
     fields: {
@@ -273,7 +273,11 @@ async function saveSPUser(userId, userData, newYN) {
     await apiPatch(graphURL, fields);
   }
 
-  if (userData.SuggestedOrganisation) {
+  let organisationChanged =
+    oldValues &&
+    userData.SuggestedOrganisation &&
+    userData.SuggestedOrganisation != oldValues.SuggestedOrganisation;
+  if (newYN || organisationChanged) {
     sendOrgSuggestionNotification(userData.SuggestedOrganisation);
   }
 }
@@ -481,7 +485,7 @@ export async function editUser(user, mappings, oldValues) {
           50
         );
 
-        var groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
+        const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
         if (groupMapping[0].Tag) addTag(groupId, user.Country, user.ADUserId);
       }
     });
@@ -562,7 +566,7 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     try {
-      await saveSPUser(user.ADUserId, user, false);
+      await saveSPUser(user.ADUserId, user, false, oldValues);
     } catch (err) {
       return wrapError(err, messages.UserEdit.Errors.SharepointUser);
     }

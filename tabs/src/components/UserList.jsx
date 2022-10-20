@@ -28,6 +28,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import InfoIcon from '@mui/icons-material/Info';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 
@@ -42,6 +43,7 @@ export function UserList({ userInfo }) {
     [alertOpen, setAlertOpen] = useState(false),
     [snackbarOpen, setSnackbarOpen] = useState(false),
     [loading, setloading] = useState(false),
+    [filterValue, setFilterValue] = useState(''),
     [searchOpen, setSearchOpen] = useState(false);
 
   const renderButtons = (params) => {
@@ -175,6 +177,29 @@ export function UserList({ userInfo }) {
       }
 
       setSnackbarOpen(false);
+    },
+    onFilterValueChanged = (value) => {
+      setFilterValue(value);
+      if (!value || (value && value.length < 2)) {
+        setFilteredUsers(users);
+      } else {
+        setTimeout(
+          setFilteredUsers(
+            users.filter((u) => {
+              return (
+                u.Email.toLowerCase().includes(value.toLowerCase()) ||
+                (u.Title &&
+                  u.Title.toLowerCase().includes(value.toLowerCase())) ||
+                (u.Membership &&
+                  u.Membership.some((m) =>
+                    m.toLowerCase().includes(value.toLowerCase())
+                  ))
+              );
+            })
+          ),
+          50
+        );
+      }
     };
   const columns = [
     { field: 'Title', headerName: 'Name', flex: 0.75 },
@@ -316,6 +341,26 @@ export function UserList({ userInfo }) {
             >
               Invite user
             </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              style={{ marginLeft: 16 }}
+              endIcon={<RefreshIcon />}
+              onClick={async () => {
+                setloading(true);
+                let invitedUsers = await getInvitedUsers(userInfo);
+                if (invitedUsers) {
+                  setUsers(invitedUsers);
+                  setFilteredUsers(invitedUsers);
+                }
+                setFilterValue('');
+                setloading(false);
+              }}
+            >
+              {' '}
+              Reload
+            </Button>
           </div>
           <div className="search-bar">
             <TextField
@@ -323,27 +368,10 @@ export function UserList({ userInfo }) {
               label="Search"
               variant="standard"
               className="search-box"
+              value={filterValue || ''}
               onChange={(event) => {
                 const { value } = event.target;
-                setTimeout(
-                  setFilteredUsers(
-                    users.filter((u) => {
-                      return (
-                        !value ||
-                        u.Email.toLowerCase().includes(value.toLowerCase()) ||
-                        (u.Title &&
-                          u.Title.toLowerCase().includes(
-                            value.toLowerCase()
-                          )) ||
-                        (u.Membership &&
-                          u.Membership.some((m) =>
-                            m.toLowerCase().includes(value.toLowerCase())
-                          ))
-                      );
-                    })
-                  ),
-                  50
-                );
+                onFilterValueChanged(value);
               }}
             />
             <IconButton
@@ -366,6 +394,16 @@ export function UserList({ userInfo }) {
             pageSize={25}
             rowsPerPageOptions={[25]}
             hideFooterSelectedRowCount={true}
+            initialState={{
+              sorting: {
+                sortModel: [
+                  {
+                    field: 'Title',
+                    sort: 'asc',
+                  },
+                ],
+              },
+            }}
             getRowHeight={() => {
               return 36;
             }}

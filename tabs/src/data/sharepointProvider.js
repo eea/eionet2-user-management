@@ -29,7 +29,7 @@ export async function getOrganisationList(country) {
   }
 }
 
-var mappingsList = undefined;
+let mappingsList = undefined;
 export async function getMappingsList() {
   const config = await getConfiguration();
   try {
@@ -56,7 +56,7 @@ export async function getMappingsList() {
     console.log(err);
   }
 }
-var genderList = [
+let genderList = [
   { id: 'Male', label: 'Mr.' },
   { id: 'Female', label: 'Ms.' },
 ];
@@ -73,27 +73,27 @@ export async function getComboLists() {
         '/columns'
     );
     const columns = response.graphClientMessage.value;
-    var genderColumn = columns.find((column) => column.name === 'Gender');
+    let genderColumn = columns.find((column) => column.name === 'Gender');
     if (genderColumn && genderColumn.choice) {
       lists.genders = genderList; //genderColumn.choice.choices;
     }
-    var countryColumn = columns.find((column) => column.name === 'Country');
+    let countryColumn = columns.find((column) => column.name === 'Country');
     if (countryColumn && countryColumn.choice) {
       lists.countries = countryColumn.choice.choices;
     }
-    var membershipColumn = columns.find(
+    let membershipColumn = columns.find(
       (column) => column.name === 'Membership'
     );
     if (membershipColumn && membershipColumn.choice) {
       lists.memberships = membershipColumn.choice.choices;
     }
-    var otherMembershipColumn = columns.find(
+    let otherMembershipColumn = columns.find(
       (column) => column.name === 'OtherMemberships'
     );
     if (otherMembershipColumn && otherMembershipColumn.choice) {
       lists.otherMemberships = otherMembershipColumn.choice.choices;
     }
-    var nfpColumn = columns.find((column) => column.name === 'NFP');
+    let nfpColumn = columns.find((column) => column.name === 'NFP');
     if (nfpColumn && nfpColumn.choice) {
       lists.nfps = nfpColumn.choice.choices;
     }
@@ -143,15 +143,21 @@ export async function getInvitedUsers(userInfo) {
       organisations = await getOrganisationList();
 
     return users.value.map(function (user) {
-      var organisation = organisations.find(
+      let organisation = organisations.find(
         (o) => o.content === user.fields.OrganisationLookupId
       );
+
+      //concatenate memberships, otherMemberships and NFP in one field to display in grid
+      let memberships = (user.fields.Membership || []).concat(
+        user.fields.OtherMemberships || []
+      );
+      user.fields.NFP && memberships.push(user.fields.NFP);
+
       return {
         Title: user.fields.Title,
         Email: user.fields.Email,
         Membership: user.fields.Membership,
-        MembershipString:
-          user.fields.Membership && user.fields.Membership.toString(),
+        MembershipString: memberships && memberships.toString(),
         OtherMemberships: user.fields.OtherMemberships,
         OtherMembershipsString:
           user.fields.OtherMemberships &&
