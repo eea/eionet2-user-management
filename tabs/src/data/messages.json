@@ -9,7 +9,7 @@
       "JoiningTeam": "The user could not be added to the Eionet teams. Please use the Manage user tab to update the user Membership(s)",
       "TagsCreation": "The tags could not be updated. Please use the Manage user tab to update the user Membership(s)",
       "SharepointUser": "User details could not be updated in the SharePoint Users list.",
-      "Mail": "An error has occured during the sending inviation email.",
+      "Mail": "An error has occured during the sending invitation email.",
       "Error": "An error has occured during the invitation process."
     }
   },
