@@ -1,15 +1,8 @@
 import { React, useState, useEffect } from 'react';
-import { editUser } from '../data/provider';
-import {
-  getComboLists,
-  getOrganisationList,
-  getMappingsList,
-} from '../data/sharepointProvider';
-import {
-  validateName,
-  validatePhone,
-  validateMandatoryField,
-} from '../data/validator';
+import { format } from 'date-fns';
+import { editUser, resendInvitation } from '../data/provider';
+import { getComboLists, getOrganisationList, getMappingsList } from '../data/sharepointProvider';
+import { validateName, validatePhone, validateMandatoryField } from '../data/validator';
 import './UserEdit.css';
 import messages from '../data/messages.json';
 import {
@@ -23,13 +16,15 @@ import {
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
+import SendIcon from '@mui/icons-material/Send';
+import WarningIcon from '@mui/icons-material/Warning';
 
 export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
   const [loading, setLoading] = useState(false),
     [dataFetching, setDataFetching] = useState(false),
     [success, setSuccess] = useState(false),
+    [resendSuccess, setResendSuccess] = useState(false),
     [oldValues, setOldValues] = useState(JSON.parse(JSON.stringify(user))),
-    [warningVisible, setWarningVisible] = useState(false),
     [warningText, setWarningText] = useState('');
 
   const [errors, setErrors] = useState({});
@@ -45,10 +40,11 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
   const [unspecifiedOrg, setUnspecifiedOrg] = useState(false);
 
   const submit = async (e) => {
+      const buttonId = e.nativeEvent.submitter.id;
       if (!loading) {
         e.preventDefault();
         let tempErrors = validateForm();
-        setWarningVisible(false);
+        setWarningText('');
         if (
           (!tempErrors ||
             !Object.values(tempErrors).some((v) => {
@@ -56,32 +52,46 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
             })) &&
           validateMembership()
         ) {
-          setSuccess(false);
           setLoading(true);
-          if (saveFunction) {
-            let result = await saveFunction();
-            if (!result.Success) {
-              setWarningText(result.Message + '\n' + result.Error);
-              setWarningVisible(true);
+          switch (buttonId) {
+            case 'submitNew': {
               setSuccess(false);
-            } else {
-              setWarningText('');
-              setWarningVisible(false);
+              const addResult = await saveFunction();
+              if (!addResult.Success) {
+                setWarningText(addResult.Message + '\n' + addResult.Error);
+                setSuccess(false);
+              }
+              setSuccess(true);
+              break;
             }
-          } else {
-            let result = await editUser(user, mappings, oldValues);
-            if (!result.Success) {
-              setWarningText(result.Message + '\n' + result.Error);
-              setWarningVisible(true);
+            case 'submitEdit': {
               setSuccess(false);
-            } else {
-              setOldValues(JSON.parse(JSON.stringify(user)));
-              (await refreshRow) && refreshRow();
-              setWarningText('');
-              setWarningVisible(false);
+              const editResult = await editUser(user, mappings, oldValues);
+              if (!editResult.Success) {
+                setWarningText(editResult.Message + '\n' + editResult.Error);
+                setSuccess(false);
+              } else {
+                setOldValues(JSON.parse(JSON.stringify(user)));
+                (await refreshRow) && refreshRow(user);
+              }
+              setSuccess(true);
+              break;
+            }
+            case 'submitResend': {
+              setResendSuccess(false);
+              const resendResult = await resendInvitation(user, mappings, oldValues);
+              if (!resendResult.Success) {
+                setWarningText(resendResult.Message + '\n' + resendResult.Error);
+                setResendSuccess(false);
+              } else {
+                setOldValues(JSON.parse(JSON.stringify(user)));
+                (await refreshRow) && refreshRow(user);
+              }
+              setResendSuccess(true);
+              break;
             }
           }
-          setSuccess(true);
+
           setLoading(false);
         }
       }
@@ -92,21 +102,16 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
         setOrganisations(organisations);
       }
 
-      const userOrganisation = organisations.filter(
-        (o) => o.header === user.Organisation
-      );
+      const userOrganisation = organisations.filter((o) => o.header === user.Organisation);
       userOrganisation[0] && setUnspecifiedOrg(userOrganisation[0].unspecified);
     },
     validateMembership = () => {
       const validMembership = user.Membership && user.Membership.length > 0,
-        validOtherMemberships =
-          user.OtherMemberships && user.OtherMemberships.length > 0;
+        validOtherMemberships = user.OtherMemberships && user.OtherMemberships.length > 0;
       if (!validMembership && !validOtherMemberships && !user.NFP) {
-        setWarningVisible(true);
         setWarningText(messages.UserEdit.MissingMembership);
         return false;
       } else {
-        setWarningVisible(false);
         setWarningText('');
         return true;
       }
@@ -129,14 +134,10 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           tempErrors.country = validateMandatoryField(user.Country);
           break;
         case 'organisation':
-          tempErrors.organisation = validateMandatoryField(
-            user.OrganisationLookupId
-          );
+          tempErrors.organisation = validateMandatoryField(user.OrganisationLookupId);
           break;
         case 'suggestedOrganisation':
-          tempErrors.suggestedOrganisation = validateMandatoryField(
-            user.SuggestedOrganisation
-          );
+          tempErrors.suggestedOrganisation = validateMandatoryField(user.SuggestedOrganisation);
           break;
         default:
           console.log('Undefined field for validation');
@@ -151,13 +152,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
       tempErrors.lastName = validateName(user.LastName);
       tempErrors.phone = validatePhone(user.Phone);
       tempErrors.country = validateMandatoryField(user.Country);
-      tempErrors.organisation = validateMandatoryField(
-        user.OrganisationLookupId
-      );
+      tempErrors.organisation = validateMandatoryField(user.OrganisationLookupId);
       if (unspecifiedOrg) {
-        tempErrors.suggestedOrganisation = validateMandatoryField(
-          user.SuggestedOrganisation
-        );
+        tempErrors.suggestedOrganisation = validateMandatoryField(user.SuggestedOrganisation);
       }
       setErrors({ ...tempErrors });
       return tempErrors;
@@ -180,9 +177,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
       }
       loadOrganisations();
 
-      let mapppings = await getMappingsList();
-      if (mapppings) {
-        setMappings(mapppings);
+      let mappings = await getMappingsList();
+      if (mappings) {
+        setMappings(mappings);
       }
 
       setDataFetching(false);
@@ -335,13 +332,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               }}
               options={organisations}
               getOptionLabel={(option) =>
-                Object.prototype.hasOwnProperty.call(option, 'header')
-                  ? option.header
-                  : option
+                Object.prototype.hasOwnProperty.call(option, 'header') ? option.header : option
               }
-              isOptionEqualToValue={(option, value) =>
-                option.content === value.content
-              }
+              isOptionEqualToValue={(option, value) => option.content === value.content}
               onChange={(e, value) => {
                 user.OrganisationLookupId = value ? value.content : undefined;
                 user.Organisation = value ? value.header : undefined;
@@ -453,19 +446,62 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               />
             )}
           </div>
+          {!user.SignedIn && user.LastInvitationDate && (
+            <div className="row">
+              <WarningIcon sx={{ color: '#eed202', alignSelf: 'center' }}></WarningIcon>
+              <FormLabel className="note-label" color="secondary" sx={{ fontWeight: 'bold' }}>
+                User was last invited on{' '}
+                {format(new Date(user.LastInvitationDate), 'dd-MMM-yyyy HH:mm')}. The user has not
+                yet completed the signup.{' '}
+              </FormLabel>
+            </div>
+          )}
           <div className="row">
             <Box sx={{ m: 1, position: 'relative' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="secondary"
-                size="medium"
-                className="button"
-                disabled={loading || (newYN && success)}
-                endIcon={success ? <CheckIcon /> : <SaveIcon />}
-              >
-                {newYN ? 'Save and send invitation' : 'Update user'}
-              </Button>
+              {newYN && (
+                <Button
+                  id="submitNew"
+                  type="submit"
+                  variant="contained"
+                  color="secondary"
+                  size="medium"
+                  className="button"
+                  disabled={loading || (newYN && success)}
+                  endIcon={success ? <CheckIcon /> : <SaveIcon />}
+                >
+                  Save and send invitation
+                </Button>
+              )}
+              {!newYN && (
+                <Button
+                  id="submitEdit"
+                  type="submit"
+                  variant="contained"
+                  color="secondary"
+                  size="medium"
+                  className="button"
+                  disabled={loading}
+                  endIcon={success ? <CheckIcon /> : <SaveIcon />}
+                >
+                  Update user
+                </Button>
+              )}
+              {!user.SignedIn && !newYN && (
+                <Button
+                  id="submitResend"
+                  type="submit"
+                  variant="contained"
+                  color="secondary"
+                  size="medium"
+                  style={{ marginLeft: 16 }}
+                  className="button"
+                  disabled={loading}
+                  endIcon={resendSuccess ? <CheckIcon /> : <SendIcon />}
+                >
+                  {' '}
+                  Re-send invite email
+                </Button>
+              )}
               {loading && (
                 <CircularProgress
                   size={24}
@@ -479,7 +515,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 />
               )}
             </Box>
-            {warningVisible && (
+            {warningText && (
               <FormLabel className="note-label warning" error>
                 {warningText}
               </FormLabel>
@@ -488,8 +524,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           {!newYN && (
             <div className="row">
               <FormLabel className="note-label">
-                Note: If the email needs to be changed, kindly contact Eionet
-                Helpdesk.{' '}
+                Note: If the email needs to be changed, kindly contact Eionet Helpdesk.{' '}
               </FormLabel>
             </div>
           )}

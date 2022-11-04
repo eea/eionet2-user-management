@@ -1,8 +1,4 @@
-import {
-  TeamsUserCredential,
-  getResourceConfiguration,
-  ResourceType,
-} from '@microsoft/teamsfx';
+import { TeamsUserCredential, getResourceConfiguration, ResourceType } from '@microsoft/teamsfx';
 import * as axios from 'axios';
 
 async function callApiFunction(command, method, options, params) {
@@ -78,10 +74,7 @@ export async function apiDelete(path, credentialType = 'app') {
 let _userMail = undefined;
 export async function getUserMail() {
   if (!_userMail) {
-    const response = await apiGet(
-      'me?$select=id,displayName,mail,mobilePhone,country',
-      'user'
-    );
+    const response = await apiGet('me?$select=id,displayName,mail,mobilePhone,country', 'user');
 
     if (response.graphClientMessage) {
       _userMail = response.graphClientMessage.mail;
@@ -98,11 +91,7 @@ export async function getConfiguration() {
   try {
     if (!_configuration) {
       const response = await apiGet(
-        '/sites/' +
-          sharepointSiteId +
-          '/lists/' +
-          configurationListId +
-          '/items?$expand=fields'
+        '/sites/' + sharepointSiteId + '/lists/' + configurationListId + '/items?$expand=fields',
       );
       _configuration = {};
       response.graphClientMessage.value.forEach(function (item) {
@@ -126,7 +115,7 @@ export async function logError(err, apiPath, data) {
       ApplicationName: 'Eionet2-User-Management',
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
-      Title: err.response?.data?.error?.body,
+      Title: err.response?.data?.error?.body.substring(0, 255),
       UserMail: userMail,
       Timestamp: new Date(),
       Logtype: 'Error',
@@ -134,11 +123,7 @@ export async function logError(err, apiPath, data) {
   };
 
   let graphURL =
-    '/sites/' +
-    spConfig.SharepointSiteId +
-    '/lists/' +
-    spConfig.LoggingListId +
-    '/items';
+    '/sites/' + spConfig.SharepointSiteId + '/lists/' + spConfig.LoggingListId + '/items';
   await apiPost(graphURL, fields);
 }
 
@@ -160,10 +145,6 @@ export async function logInfo(message, apiPath, data, action) {
   };
 
   let graphURL =
-    '/sites/' +
-    spConfig.SharepointSiteId +
-    '/lists/' +
-    spConfig.LoggingListId +
-    '/items';
+    '/sites/' + spConfig.SharepointSiteId + '/lists/' + spConfig.LoggingListId + '/items';
   await apiPost(graphURL, fields);
 }

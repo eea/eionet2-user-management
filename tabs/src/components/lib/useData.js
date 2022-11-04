@@ -15,7 +15,7 @@ export function useData(asyncFn, options) {
           return {};
       }
     },
-    { data: null, loading: !!auto, error: null }
+    { data: null, loading: !!auto, error: null },
   );
   function reload() {
     if (!loading) dispatch({ type: 'loading' });

@@ -1,21 +1,15 @@
 import { React, useState, useEffect } from 'react';
-import { getUserByMail, sendInvitation } from '../data/provider';
+import { getUserByMail, inviteUser } from '../data/provider';
 import { getMappingsList } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import validator from 'validator';
 import './UserInvite.css';
 import { UserEdit } from './UserEdit';
-import {
-  Box,
-  CircularProgress,
-  FormLabel,
-  TextField,
-  Button,
-} from '@mui/material';
+import { Box, CircularProgress, FormLabel, TextField, Button } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export function UserInvite({ userInfo, refreshRow }) {
+export function UserInvite({ userInfo, refreshList }) {
   const [inputEmail, setInputEmail] = useState(''),
     [formVisible, setFormVisible] = useState(false),
     [emailCheckVisible, setEmailCheckVisible] = useState(true),
@@ -85,9 +79,9 @@ export function UserInvite({ userInfo, refreshRow }) {
       }
       setLoading(false);
     },
-    inviteUser = async () => {
-      let result = await sendInvitation(selectedUser, mapppings);
-      refreshRow && (await refreshRow());
+    sendInvite = async () => {
+      let result = await inviteUser(selectedUser, mapppings);
+      refreshList && (await refreshList());
       return result;
     };
 
@@ -171,7 +165,7 @@ export function UserInvite({ userInfo, refreshRow }) {
             <h2>User details</h2>
             <UserEdit
               user={selectedUser}
-              saveFunction={inviteUser}
+              saveFunction={sendInvite}
               newYN={true}
               userInfo={userInfo}
             ></UserEdit>

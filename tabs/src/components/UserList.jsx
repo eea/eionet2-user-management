@@ -20,7 +20,6 @@ import {
   Box,
   Alert,
   Snackbar,
-  Checkbox,
   Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,6 +28,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import InfoIcon from '@mui/icons-material/Info';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import WarningIcon from '@mui/icons-material/Warning';
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 
@@ -111,7 +112,7 @@ export function UserList({ userInfo }) {
       setDeleteAlertOpen(false);
       setloading(true);
       let result = await removeUser(selectedUser);
-      await refreshRow();
+      await refreshList();
       setloading(false);
       setSnackbarOpen(result.Success);
     },
@@ -128,8 +129,7 @@ export function UserList({ userInfo }) {
       let index = 0,
         allMemberships = [];
 
-      params.row.Membership &&
-        params.row.Membership.forEach((m) => allMemberships.push(m));
+      params.row.Membership && params.row.Membership.forEach((m) => allMemberships.push(m));
       params.row.OtherMemberships &&
         params.row.OtherMemberships.forEach((m) => allMemberships.push(m));
       params.row.NFP && allMemberships.push(params.row.NFP);
@@ -146,9 +146,22 @@ export function UserList({ userInfo }) {
     renderSignedIn = (params) => {
       let value = params.row.SignedIn || false;
 
-      return <Checkbox disabled checked={value}></Checkbox>;
+      return value ? (
+        <CheckCircleOutlineIcon sx={{ color: 'green' }}></CheckCircleOutlineIcon>
+      ) : (
+        <WarningIcon sx={{ color: '#eed202' }}></WarningIcon>
+      );
     },
-    refreshRow = async () => {
+    refreshRow = async (user) => {
+      let existingRecord = filteredUsers.find((u) => {
+        return u.id == user.id;
+      });
+
+      if (existingRecord) {
+        Object.assign(existingRecord, user);
+      }
+    },
+    refreshList = async () => {
       let invitedUsers = await getInvitedUsers(userInfo);
       if (invitedUsers) {
         setUsers(invitedUsers);
@@ -157,9 +170,7 @@ export function UserList({ userInfo }) {
     },
     getDeleteMessage = () => {
       let message = messages.UserList.DeleteUser;
-      message = selectedUser
-        ? message.replace('#name#', selectedUser.Title)
-        : '';
+      message = selectedUser ? message.replace('#name#', selectedUser.Title) : '';
       message += ' ' + configuration.DeleteEionetUserDetails;
       return message;
     },
@@ -188,16 +199,13 @@ export function UserList({ userInfo }) {
             users.filter((u) => {
               return (
                 u.Email.toLowerCase().includes(value.toLowerCase()) ||
-                (u.Title &&
-                  u.Title.toLowerCase().includes(value.toLowerCase())) ||
+                (u.Title && u.Title.toLowerCase().includes(value.toLowerCase())) ||
                 (u.Membership &&
-                  u.Membership.some((m) =>
-                    m.toLowerCase().includes(value.toLowerCase())
-                  ))
+                  u.Membership.some((m) => m.toLowerCase().includes(value.toLowerCase())))
               );
-            })
+            }),
           ),
-          50
+          50,
         );
       }
     };
@@ -217,6 +225,7 @@ export function UserList({ userInfo }) {
       headerName: 'Signed In',
       renderCell: renderSignedIn,
       flex: 0.25,
+      align: 'center',
     },
     {
       field: 'Edit',
@@ -253,11 +262,7 @@ export function UserList({ userInfo }) {
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
       >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity="success"
-          sx={{ width: '100%' }}
-        >
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
           User removed succesfully!
         </Alert>
       </Snackbar>
@@ -273,20 +278,12 @@ export function UserList({ userInfo }) {
           <CircularProgress color="inherit" />
         </Backdrop>
         <Dialog open={searchOpen} onClose={handleSearchClose} maxWidth="xl">
-          <Alert
-            onClose={handleSearchClose}
-            severity="info"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleSearchClose} severity="info" sx={{ width: '100%' }}>
             {configuration.UserListSearchInfo}
           </Alert>
         </Dialog>
         <Dialog open={alertOpen} onClose={handleAlertClose} maxWidth="xl">
-          <Alert
-            onClose={handleAlertClose}
-            severity="error"
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleAlertClose} severity="error" sx={{ width: '100%' }}>
             {messages.UserList.MissingADUser}
           </Alert>
         </Dialog>
@@ -295,34 +292,21 @@ export function UserList({ userInfo }) {
           onClose={handleDeleteNo}
           aria-labelledby="responsive-dialog-title"
         >
-          <DialogTitle id="responsive-dialog-title">
-            {'Remove user'}
-          </DialogTitle>
+          <DialogTitle id="responsive-dialog-title">{'Remove user'}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               {getDeleteMessage()}
               <br />
-              {selectedUser.groupsString &&
-                messages.UserList.DeleteUserMemberships}
+              {selectedUser.groupsString && messages.UserList.DeleteUserMemberships}
               <br />
               {selectedUser.groupsString}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={handleDeleteYes}
-            >
+            <Button variant="contained" color="secondary" size="small" onClick={handleDeleteYes}>
               Yes
             </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={handleDeleteNo}
-            >
+            <Button variant="contained" color="secondary" size="small" onClick={handleDeleteNo}>
               No
             </Button>
           </DialogActions>
@@ -450,7 +434,7 @@ export function UserList({ userInfo }) {
             </IconButton>
           </DialogTitle>
           <div className="page-padding">
-            <UserInvite userInfo={userInfo} refreshRow={refreshRow}>
+            <UserInvite userInfo={userInfo} refreshList={refreshList}>
               {' '}
             </UserInvite>
           </div>

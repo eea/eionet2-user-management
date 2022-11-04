@@ -10,10 +10,7 @@ export async function getOrganisationList(country) {
       config.OrganisationListId +
       '/items?$expand=fields';
     if (country) {
-      path +=
-        "&$filter=fields/Country eq '" +
-        country +
-        "' or fields/Unspecified eq 1";
+      path += "&$filter=fields/Country eq '" + country + "' or fields/Unspecified eq 1";
     }
     const response = await apiGet(path);
     return response.graphClientMessage.value.map(function (organisation) {
@@ -39,7 +36,7 @@ export async function getMappingsList() {
           config.SharepointSiteId +
           '/lists/' +
           config.MappingListId +
-          '/items?$expand=fields'
+          '/items?$expand=fields',
       );
       mappingsList = response.graphClientMessage.value.map(function (mapping) {
         return {
@@ -66,11 +63,7 @@ export async function getComboLists() {
   let lists = {};
   try {
     const response = await apiGet(
-      '/sites/' +
-        config.SharepointSiteId +
-        '/lists/' +
-        config.UserListId +
-        '/columns'
+      '/sites/' + config.SharepointSiteId + '/lists/' + config.UserListId + '/columns',
     );
     const columns = response.graphClientMessage.value;
     let genderColumn = columns.find((column) => column.name === 'Gender');
@@ -81,15 +74,11 @@ export async function getComboLists() {
     if (countryColumn && countryColumn.choice) {
       lists.countries = countryColumn.choice.choices;
     }
-    let membershipColumn = columns.find(
-      (column) => column.name === 'Membership'
-    );
+    let membershipColumn = columns.find((column) => column.name === 'Membership');
     if (membershipColumn && membershipColumn.choice) {
       lists.memberships = membershipColumn.choice.choices;
     }
-    let otherMembershipColumn = columns.find(
-      (column) => column.name === 'OtherMemberships'
-    );
+    let otherMembershipColumn = columns.find((column) => column.name === 'OtherMemberships');
     if (otherMembershipColumn && otherMembershipColumn.choice) {
       lists.otherMemberships = otherMembershipColumn.choice.choices;
     }
@@ -143,14 +132,10 @@ export async function getInvitedUsers(userInfo) {
       organisations = await getOrganisationList();
 
     return users.value.map(function (user) {
-      let organisation = organisations.find(
-        (o) => o.content === user.fields.OrganisationLookupId
-      );
+      let organisation = organisations.find((o) => o.content === user.fields.OrganisationLookupId);
 
       //concatenate memberships, otherMemberships and NFP in one field to display in grid
-      let memberships = (user.fields.Membership || []).concat(
-        user.fields.OtherMemberships || []
-      );
+      let memberships = (user.fields.Membership || []).concat(user.fields.OtherMemberships || []);
       user.fields.NFP && memberships.push(user.fields.NFP);
 
       return {
@@ -160,8 +145,7 @@ export async function getInvitedUsers(userInfo) {
         MembershipString: memberships && memberships.toString(),
         OtherMemberships: user.fields.OtherMemberships,
         OtherMembershipsString:
-          user.fields.OtherMemberships &&
-          user.fields.OtherMemberships.toString(),
+          user.fields.OtherMemberships && user.fields.OtherMemberships.toString(),
         Country: user.fields.Country,
         OrganisationLookupId: user.fields.OrganisationLookupId,
         Organisation: organisation ? organisation.header : '',
@@ -174,6 +158,7 @@ export async function getInvitedUsers(userInfo) {
         NFP: user.fields.NFP,
         SignedIn: user.fields.SignedIn,
         SuggestedOrganisation: user.fields.SuggestedOrganisation,
+        LastInvitationDate: user.fields.LastInvitationDate,
         id: user.fields.id,
       };
     });

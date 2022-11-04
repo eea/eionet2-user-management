@@ -1,8 +1,5 @@
 import { useData } from './useData';
-import {
-  TeamsUserCredential,
-  createMicrosoftGraphClient,
-} from '@microsoft/teamsfx';
+import { TeamsUserCredential, createMicrosoftGraphClient } from '@microsoft/teamsfx';
 
 export function useGraph(asyncFunc, options) {
   const { scope } = { scope: ['User.Read'], ...options };
@@ -28,7 +25,7 @@ export function useGraph(asyncFunc, options) {
       const graph = createMicrosoftGraphClient(credential, scope);
       return await asyncFunc(graph);
     },
-    { auto: false }
+    { auto: false },
   );
 
   return data || error || loading
