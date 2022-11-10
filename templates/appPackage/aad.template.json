@@ -29,19 +29,7 @@
                     "type": "Role"
                 },
                 {
-                    "id": "Domain.ReadWrite.All",
-                    "type": "Role"
-                },
-                {
                     "id": "Directory.ReadWrite.All",
-                    "type": "Role"
-                },
-                {
-                    "id": "TeamMember.ReadWrite.All",
-                    "type": "Role"
-                },
-                {
-                    "id": "TeamSettings.ReadWrite.All",
                     "type": "Role"
                 },
                 {
