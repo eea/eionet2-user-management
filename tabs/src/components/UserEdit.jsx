@@ -446,7 +446,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               />
             )}
           </div>
-          {!user.SignedIn && user.LastInvitationDate && (
+          {!user.newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
               <WarningIcon sx={{ color: '#eed202', alignSelf: 'center' }}></WarningIcon>
               <FormLabel className="note-label" color="secondary" sx={{ fontWeight: 'bold' }}>

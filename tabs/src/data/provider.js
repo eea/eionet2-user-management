@@ -2,6 +2,15 @@ import { apiGet, apiPost, apiPatch, apiDelete, getConfiguration, logInfo } from 
 import { getMappingsList, getSPUserByMail } from './sharepointProvider';
 import messages from './messages.json';
 
+const capitalizeFirst = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+function capitalizeName(user) {
+  user.FirstName = capitalizeFirst(user.FirstName);
+  user.LastName = capitalizeFirst(user.LastName);
+}
+
 function wrapError(err, message) {
   return {
     Message: message,
@@ -197,6 +206,10 @@ async function sendOrgSuggestionNotification(info) {
 
 async function saveSPUser(userId, userData, newYN, oldValues) {
   const spConfig = await getConfiguration();
+
+  if (newYN) {
+    userData.LastInvitationDate = new Date();
+  }
   let fields = {
     fields: {
       Phone: userData.Phone,
@@ -262,6 +275,7 @@ async function sendInvitationMail(user) {
 }
 
 export async function inviteUser(user, mappings) {
+  capitalizeName(user);
   try {
     let firstMapping = mappings.find(
         (m) =>
@@ -390,6 +404,7 @@ export async function inviteUser(user, mappings) {
 }
 
 export async function editUser(user, mappings, oldValues) {
+  capitalizeName(user);
   try {
     let newMappings = mappings.filter(
         (m) =>
