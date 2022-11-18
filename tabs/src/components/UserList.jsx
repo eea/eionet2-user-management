@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from 'react';
+import { logInfo } from '../data/apiProvider';
 import { getUser, removeUser, getUserGroups } from '../data/provider';
 import { getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
@@ -59,16 +60,19 @@ export function UserList({ userInfo }) {
                 onClick={async () => {
                   setFormVisible(false);
                   const user = params.row;
+                  let missingUser = user.ADUserId === undefined;
                   if (user.ADUserId) {
                     const userDetails = await getUser(user.ADUserId);
-
-                    user.FirstName = userDetails.givenName;
-                    user.LastName = userDetails.surname;
-                    setSelectedUser(user);
-                    setFormVisible(true);
-                  } else {
-                    setAlertOpen(true);
+                    missingUser = userDetails === undefined;
+                    if (userDetails) {
+                      user.FirstName = userDetails.givenName;
+                      user.LastName = userDetails.surname;
+                      setSelectedUser(user);
+                      setFormVisible(true);
+                    }
                   }
+                  setAlertOpen(missingUser);
+                  missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
                 }}
               >
                 <CreateIcon />

@@ -158,7 +158,9 @@ export async function getInvitedUsers(userInfo) {
         NFP: user.fields.NFP,
         SignedIn: user.fields.SignedIn,
         SuggestedOrganisation: user.fields.SuggestedOrganisation,
-        LastInvitationDate: user.fields.LastInvitationDate,
+        LastInvitationDate: user.fields.LastInvitationDate
+          ? user.fields.LastInvitationDate
+          : user.createdDateTime,
         id: user.fields.id,
       };
     });
