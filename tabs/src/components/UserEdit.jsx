@@ -13,6 +13,7 @@ import {
   FormLabel,
   CircularProgress,
   Backdrop,
+  Link,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
@@ -139,6 +140,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
         case 'suggestedOrganisation':
           tempErrors.suggestedOrganisation = validateMandatoryField(user.SuggestedOrganisation);
           break;
+        case 'membership':
+          tempErrors.membership = validateMandatoryField(user.Membership);
+          break;
         default:
           console.log('Undefined field for validation');
           break;
@@ -155,6 +159,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
       tempErrors.organisation = validateMandatoryField(user.OrganisationLookupId);
       if (unspecifiedOrg) {
         tempErrors.suggestedOrganisation = validateMandatoryField(user.SuggestedOrganisation);
+      }
+      if (userInfo.isNFP) {
+        tempErrors.membership = validateMandatoryField(user.Membership);
       }
       setErrors({ ...tempErrors });
       return tempErrors;
@@ -226,7 +233,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   {...params}
                   autoComplete="off"
                   className="small-width"
-                  label="Title"
+                  label="Salutation"
                   variant="standard"
                 />
               )}
@@ -358,27 +365,54 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
             />
           </div>
           <div className="row">
-            <Autocomplete
-              required
-              multiple
-              limitTags={1}
-              id="membership"
-              defaultValue={user.Membership}
-              options={memberships}
-              getOptionLabel={(option) => option}
-              onChange={(e, value) => {
-                user.Membership = value;
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  required
-                  autoComplete="off"
-                  variant="standard"
-                  label="Eionet groups"
-                />
-              )}
-            />
+            {userInfo.isNFP && (
+              <Autocomplete
+                required
+                multiple
+                limitTags={1}
+                id="membership"
+                defaultValue={user.Membership}
+                options={memberships}
+                getOptionLabel={(option) => option}
+                onChange={(e, value) => {
+                  user.Membership = value;
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    autoComplete="off"
+                    variant="standard"
+                    label="Eionet groups"
+                    error={Boolean(errors?.membership)}
+                    helperText={errors?.membership}
+                    onBlur={validateField}
+                  />
+                )}
+              />
+            )}
+            {userInfo.isAdmin && (
+              <Autocomplete
+                required
+                multiple
+                limitTags={1}
+                id="membership"
+                defaultValue={user.Membership}
+                options={memberships}
+                getOptionLabel={(option) => option}
+                onChange={(e, value) => {
+                  user.Membership = value;
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    autoComplete="off"
+                    variant="standard"
+                    label="Eionet groups"
+                  />
+                )}
+              />
+            )}
             {userInfo.isAdmin && (
               <Autocomplete
                 required
@@ -394,7 +428,6 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    required
                     autoComplete="off"
                     variant="standard"
                     label="Other memberships"
@@ -412,13 +445,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   user.NFP = value;
                 }}
                 renderInput={(params) => (
-                  <TextField
-                    required
-                    autoComplete="off"
-                    {...params}
-                    label="NFP"
-                    variant="standard"
-                  />
+                  <TextField autoComplete="off" {...params} label="NFP" variant="standard" />
                 )}
               />
             )}
@@ -446,7 +473,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               />
             )}
           </div>
-          {!user.newYN && !user.SignedIn && user.LastInvitationDate && (
+          {!newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
               <WarningIcon sx={{ color: '#eed202', alignSelf: 'center' }}></WarningIcon>
               <FormLabel className="note-label" color="secondary" sx={{ fontWeight: 'bold' }}>
@@ -469,7 +496,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   disabled={loading || (newYN && success)}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
-                  Save and send invitation
+                  {success ? 'Saved and invitation sent' : 'Save and send invitation'}
                 </Button>
               )}
               {!newYN && (
@@ -523,8 +550,12 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           </div>
           {!newYN && (
             <div className="row">
-              <FormLabel className="note-label">
-                Note: If the email needs to be changed, kindly contact Eionet Helpdesk.{' '}
+              <FormLabel className="note-label control">
+                Note: If the email or other details needs to be changed, kindly contact{' '}
+                <Link className="mail-link" href="mailto:helpdesk@eionet.europa.eu">
+                  Eionet Helpdesk
+                </Link>
+                .
               </FormLabel>
             </div>
           )}
