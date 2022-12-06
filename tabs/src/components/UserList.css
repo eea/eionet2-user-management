@@ -119,6 +119,10 @@ code {
   width: 50%;
 }
 
+.MuiDataGrid-columnHeaderTitle {
+  font-weight: bold !important;
+}
+
 .MuiDataGrid-row:nth-child(even) {
   background-color: aliceblue;
 }

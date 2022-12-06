@@ -90,4 +90,5 @@ code {
 
 .small-width {
   width: 25% !important;
+  min-width: 150px !important;
 }

@@ -185,7 +185,15 @@ async function sendOrgSuggestionNotification(info) {
           subject: config.NewOrganisationSuggestionSubject,
           body: {
             contentType: 'Text',
-            content: config.NewOrganisationSuggestionMailBody + '  ' + info,
+            content:
+              config.NewOrganisationSuggestionMailBody +
+              '  ' +
+              info +
+              '\n' +
+              'Requested by user: ' +
+              _profile.displayName +
+              ' - ' +
+              _profile.mail,
           },
           toRecipients: [
             {
@@ -497,6 +505,22 @@ export async function editUser(user, mappings, oldValues) {
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserEdit.Errors.Error);
+  }
+}
+
+export async function removeUserMemberships(user) {
+  const oldValues = JSON.parse(JSON.stringify(user)),
+    mappings = await getMappingsList();
+  try {
+    user.Membership = [];
+    const editResult = await editUser(user, mappings, oldValues);
+    if (editResult.Success) {
+      return { Success: true };
+    } else {
+      return editResult;
+    }
+  } catch (err) {
+    return wrapError(err, messages.UserInvite.Errors.Mail);
   }
 }
 

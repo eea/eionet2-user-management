@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from 'react';
 import { logInfo } from '../data/apiProvider';
-import { getUser, removeUser, getUserGroups } from '../data/provider';
+import { getUser, removeUser, removeUserMemberships, getUserGroups } from '../data/provider';
 import { getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
@@ -12,15 +12,11 @@ import {
   Chip,
   Dialog,
   DialogTitle,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
   IconButton,
   Backdrop,
   CircularProgress,
   Box,
   Alert,
-  Snackbar,
   Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -31,8 +27,12 @@ import InfoIcon from '@mui/icons-material/Info';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningIcon from '@mui/icons-material/Warning';
+import ClearIcon from '@mui/icons-material/Clear';
+import PersonRemove from '@mui/icons-material/PersonRemoveAlt1';
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
+import Snack from './Snack';
+import DeleteDialog from './DeleteDialog';
 
 export function UserList({ userInfo }) {
   const [users, setUsers] = useState([]),
@@ -41,14 +41,24 @@ export function UserList({ userInfo }) {
     [configuration, setConfiguration] = useState({}),
     [addFormVisible, setAddFormVisible] = useState(false),
     [formVisible, setFormVisible] = useState(false),
-    [deleteAlertOpen, setDeleteAlertOpen] = useState(false),
     [alertOpen, setAlertOpen] = useState(false),
-    [snackbarOpen, setSnackbarOpen] = useState(false),
     [loading, setloading] = useState(false),
     [filterValue, setFilterValue] = useState(''),
     [searchOpen, setSearchOpen] = useState(false);
 
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false),
+    [deleteMembershipAlertOpen, setDeleteMembershipAlertOpen] = useState(false),
+    [snackbarMessage, setSnackbarMessage] = useState(''),
+    [snackbarOpen, setSnackbarOpen] = useState(false);
+
   const renderButtons = (params) => {
+      const showRemoveMemberships =
+          userInfo.isNFP &&
+          (params.row?.OtherMemberships?.length || params.row?.NFP) &&
+          params.row?.Membership?.length,
+        showRemoveUser =
+          (userInfo.isNFP && !params.row?.OtherMemberships?.length && !params.row?.NFP) ||
+          userInfo.isAdmin;
       return (
         <div className="row">
           <strong>
@@ -78,29 +88,57 @@ export function UserList({ userInfo }) {
                 <CreateIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Remove">
-              <IconButton
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={async () => {
-                  setFormVisible(false);
-                  const user = params.row;
-                  if (user.ADUserId) {
-                    const userDetails = await getUser(user.ADUserId),
-                      groupsString = await getUserGroups(user.ADUserId);
+            {showRemoveUser && (
+              <Tooltip title="Remove">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    const user = params.row;
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId),
+                        groupsString = await getUserGroups(user.ADUserId);
 
-                    user.FirstName = userDetails.givenName;
-                    user.LastName = userDetails.surname;
-                    user.groupsString = groupsString;
-                  }
-                  setSelectedUser(user);
-                  setDeleteAlertOpen(true);
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
+                      user.FirstName = userDetails.givenName;
+                      user.LastName = userDetails.surname;
+                      user.groupsString = groupsString;
+                    }
+                    setSelectedUser(user);
+                    setDeleteAlertOpen(true);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {showRemoveMemberships && (
+              <Tooltip title="Remove Eionet memberships">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    const user = params.row;
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId),
+                        groupsString = await getUserGroups(user.ADUserId);
+
+                      user.FirstName = userDetails.givenName;
+                      user.LastName = userDetails.surname;
+                      user.groupsString = groupsString;
+                    }
+                    setSelectedUser(user);
+                    setDeleteMembershipAlertOpen(true);
+                  }}
+                >
+                  <PersonRemove />
+                </IconButton>
+              </Tooltip>
+            )}
           </strong>
         </div>
       );
@@ -118,10 +156,23 @@ export function UserList({ userInfo }) {
       let result = await removeUser(selectedUser);
       await refreshList();
       setloading(false);
+      setSnackbarMessage('Success. User removed from Eionet&lsquo;s workspace.');
       setSnackbarOpen(result.Success);
     },
     handleDeleteNo = () => {
       setDeleteAlertOpen(false);
+    },
+    handleDeleteMembershipYes = async () => {
+      setDeleteMembershipAlertOpen(false);
+      setloading(true);
+      let result = await removeUserMemberships(selectedUser);
+      await refreshList();
+      setloading(false);
+      setSnackbarMessage('Success. User&lsquo;s Eionet memberships removed.');
+      setSnackbarOpen(result.Success);
+    },
+    handleDeleteMembershipNo = () => {
+      setDeleteMembershipAlertOpen(false);
     },
     handleSearchDialog = () => {
       setSearchOpen(true);
@@ -178,6 +229,15 @@ export function UserList({ userInfo }) {
       message += ' ' + configuration.DeleteEionetUserDetails;
       return message;
     },
+    getDeleteMembershipMessage = () => {
+      const configMessage = configuration.DeleteEionetUserMemberships
+        ? configuration.DeleteEionetUserMemberships
+        : '';
+      let message = messages.UserList.DeleteUserMemberships;
+      message = selectedUser ? message.replace('#name#', selectedUser.Title) : '';
+      message += ' ' + configMessage;
+      return message;
+    },
     handleClose = () => {
       setSelectedUser({});
       setFormVisible(false);
@@ -214,21 +274,21 @@ export function UserList({ userInfo }) {
       }
     };
   const columns = [
-    { field: 'Title', headerName: 'Name', flex: 0.75 },
-    { field: 'Email', headerName: 'Email', flex: 0.75 },
+    { field: 'Title', headerName: 'Name', flex: 0.65 },
+    { field: 'Email', headerName: 'Email', flex: 0.65 },
     {
       field: 'MembershipString',
       headerName: 'Memberships',
       renderCell: renderMembershipTags,
-      flex: 1.25,
+      flex: 1,
     },
-    { field: 'Country', headerName: 'Country', flex: 0.25 },
-    { field: 'Organisation', headerName: 'Organisation', flex: 1 },
+    { field: 'Country', headerName: 'Country', flex: 0.15 },
+    { field: 'Organisation', headerName: 'Organisation', flex: 0.65 },
     {
       field: 'SignedIn',
       headerName: 'Signed In',
       renderCell: renderSignedIn,
-      flex: 0.25,
+      flex: 0.15,
       align: 'center',
     },
     {
@@ -239,6 +299,7 @@ export function UserList({ userInfo }) {
       disableClickEventBubbling: true,
     },
   ];
+
   useEffect(() => {
     (async () => {
       setloading(true);
@@ -257,19 +318,7 @@ export function UserList({ userInfo }) {
 
   return (
     <div className="welcome page main page-padding">
-      <Snackbar
-        open={snackbarOpen}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-      >
-        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-          User removed succesfully!
-        </Alert>
-      </Snackbar>
+      <Snack open={snackbarOpen} message={snackbarMessage} onClose={handleSnackbarClose}></Snack>
       <Box
         sx={{
           boxShadow: 2,
@@ -291,30 +340,25 @@ export function UserList({ userInfo }) {
             {messages.UserList.MissingADUser}
           </Alert>
         </Dialog>
-        <Dialog
+
+        <DeleteDialog
           open={deleteAlertOpen}
+          title={'Remove user'}
+          message={getDeleteMessage}
+          groupsString={selectedUser.groupsString}
           onClose={handleDeleteNo}
-          aria-labelledby="responsive-dialog-title"
-        >
-          <DialogTitle id="responsive-dialog-title">{'Remove user'}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {getDeleteMessage()}
-              <br />
-              {selectedUser.groupsString && messages.UserList.DeleteUserMemberships}
-              <br />
-              {selectedUser.groupsString}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button variant="contained" color="secondary" size="small" onClick={handleDeleteYes}>
-              Yes
-            </Button>
-            <Button variant="contained" color="secondary" size="small" onClick={handleDeleteNo}>
-              No
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onYes={handleDeleteYes}
+          onNo={handleDeleteNo}
+        ></DeleteDialog>
+        <DeleteDialog
+          open={deleteMembershipAlertOpen}
+          title={'Remove user membership'}
+          message={getDeleteMembershipMessage}
+          groupsString={selectedUser.groupsString}
+          onClose={handleDeleteMembershipNo}
+          onYes={handleDeleteMembershipYes}
+          onNo={handleDeleteMembershipNo}
+        ></DeleteDialog>
         <div className="list-bar">
           <div className="add-bar">
             <Button
@@ -357,6 +401,19 @@ export function UserList({ userInfo }) {
               variant="standard"
               className="search-box"
               value={filterValue || ''}
+              InputProps={{
+                endAdornment: (
+                  <IconButton
+                    sx={{ visibility: filterValue ? 'visible' : 'hidden' }}
+                    onClick={() => {
+                      setFilterValue('');
+                      setFilteredUsers(users);
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                ),
+              }}
               onChange={(event) => {
                 const { value } = event.target;
                 onFilterValueChanged(value);
@@ -379,8 +436,8 @@ export function UserList({ userInfo }) {
           <DataGrid
             rows={filteredUsers}
             columns={columns}
-            pageSize={25}
-            rowsPerPageOptions={[25]}
+            pageSize={100}
+            rowsPerPageOptions={[100]}
             hideFooterSelectedRowCount={true}
             initialState={{
               sorting: {

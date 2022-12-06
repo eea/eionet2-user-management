@@ -16,7 +16,8 @@
   "UserList": {
     "MissingADUser": "The user account cannot be updated (account is not present in the Azure tenant).",
     "DeleteUser": "Are you sure you want to remove the user #name# from the Eionet directory?",
-    "DeleteUserMemberships": "The user is also a member of the following groups at EEA:"
+    "DeleteUserMemberships": "Are you sure you want to remove memberships for the user #name# from the Eionet directory?",
+    "UserMemberships": "The user is also a member of the following groups at EEA:"
   },
   "UserEdit": {
     "MissingMembership": "At least one the following fields must be selected Eionet groups, Other memberships or NFP.",
