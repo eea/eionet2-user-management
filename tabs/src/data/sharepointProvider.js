@@ -134,8 +134,6 @@ export async function getInvitedUsers(userInfo) {
       let memberships = (user.fields.Membership || []).concat(user.fields.OtherMemberships || []);
       user.fields.NFP && memberships.push(user.fields.NFP);
 
-      const genderTitle = genderList.find((g) => g.id === user.fields.Gender)?.label;
-
       return {
         Title: user.fields.Title,
         Email: user.fields.Email,
@@ -150,7 +148,7 @@ export async function getInvitedUsers(userInfo) {
         Phone: user.fields.Phone,
         ADUserId: user.fields.ADUserId,
         Gender: user.fields.Gender,
-        GenderTitle: genderTitle ? genderTitle : '',
+        GenderTitle: user.fields.Gender ? user.fields.Gender : '',
         NFP: user.fields.NFP,
         SignedIn: user.fields.SignedIn,
         SuggestedOrganisation: user.fields.SuggestedOrganisation,
