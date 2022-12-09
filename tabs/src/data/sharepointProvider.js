@@ -54,11 +54,6 @@ export async function getMappingsList() {
   }
 }
 
-let genderList = [
-  { id: 'Male', label: 'Mr.' },
-  { id: 'Female', label: 'Ms.' },
-];
-
 export async function getComboLists() {
   const config = await getConfiguration();
   let lists = {};
@@ -69,7 +64,7 @@ export async function getComboLists() {
     const columns = response.graphClientMessage.value;
     let genderColumn = columns.find((column) => column.name === 'Gender');
     if (genderColumn && genderColumn.choice) {
-      lists.genders = genderList; //genderColumn.choice.choices;
+      lists.genders = genderColumn.choice.choices;
     }
     let countryColumn = columns.find((column) => column.name === 'Country');
     if (countryColumn && countryColumn.choice) {
@@ -155,7 +150,7 @@ export async function getInvitedUsers(userInfo) {
         Phone: user.fields.Phone,
         ADUserId: user.fields.ADUserId,
         Gender: user.fields.Gender,
-        GenderTitle: genderTitle ? genderTitle : user.fields.Gender,
+        GenderTitle: genderTitle ? genderTitle : '',
         NFP: user.fields.NFP,
         SignedIn: user.fields.SignedIn,
         SuggestedOrganisation: user.fields.SuggestedOrganisation,
