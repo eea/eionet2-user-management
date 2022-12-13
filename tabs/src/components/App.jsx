@@ -4,7 +4,7 @@ import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import { useTeamsFx } from './lib/useTeamsFx';
 import Privacy from './Privacy';
 import TermsOfUse from './TermsOfUse';
-import './App.css';
+import './App.scss';
 import TabConfig from './TabConfig';
 import EditTab from './EditTab';
 

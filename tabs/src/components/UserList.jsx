@@ -5,7 +5,7 @@ import { getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { DataGrid } from '@mui/x-data-grid';
-import './UserList.css';
+import './UserList.scss';
 import {
   TextField,
   Button,
