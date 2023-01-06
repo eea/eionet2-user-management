@@ -4,6 +4,7 @@ import { getUser, removeUser, removeUserMemberships, getUserGroups } from '../da
 import { getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
+import { useMediaQuery } from 'react-responsive';
 import { DataGrid } from '@mui/x-data-grid';
 import './UserList.scss';
 import {
@@ -35,6 +36,7 @@ import Snack from './Snack';
 import DeleteDialog from './DeleteDialog';
 
 export function UserList({ userInfo }) {
+  const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
   const [users, setUsers] = useState([]),
     [filteredUsers, setFilteredUsers] = useState([]),
     [selectedUser, setSelectedUser] = useState({}),
@@ -273,6 +275,7 @@ export function UserList({ userInfo }) {
         );
       }
     };
+
   const columns = [
     { field: 'Title', headerName: 'Name', flex: 0.65 },
     { field: 'Email', headerName: 'Email', flex: 0.65 },
@@ -281,15 +284,17 @@ export function UserList({ userInfo }) {
       headerName: 'Memberships',
       renderCell: renderMembershipTags,
       flex: 1,
+      hide: isMobile,
     },
-    { field: 'Country', headerName: 'Country', flex: 0.15 },
-    { field: 'Organisation', headerName: 'Organisation', flex: 0.65 },
+    { field: 'Country', headerName: 'Country', flex: 0.15, hide: isMobile },
+    { field: 'Organisation', headerName: 'Organisation', flex: 0.65, hide: isMobile },
     {
       field: 'SignedIn',
       headerName: 'Signed In',
       renderCell: renderSignedIn,
       flex: 0.15,
       align: 'center',
+      hide: isMobile,
     },
     {
       field: 'Edit',
