@@ -294,12 +294,10 @@ export async function inviteUser(user, mappings) {
     let userId = undefined,
       invitationResponse = undefined,
       sendMail = false,
-      onlyNFP = false,
-      teamsURLs = undefined;
+      onlyNFP = false;
 
     if (user.NFP && !firstMapping) {
       firstMapping = mappings.find((m) => m.O365GroupId === config.MainEionetGroupId);
-      teamsURLs = firstMapping.TeamURL;
       onlyNFP = true;
     }
 
@@ -329,7 +327,7 @@ export async function inviteUser(user, mappings) {
     } else {
       userId = user.ADProfile.id;
       try {
-        saveADUser(userId, user);
+        await saveADUser(userId, user);
       } catch (err) {
         return wrapError(err, messages.UserEdit.Errors.ADUser);
       }
@@ -368,7 +366,6 @@ export async function inviteUser(user, mappings) {
             //Set groups and tags
             try {
               if (!groupList.includes(mapping.O365GroupId)) {
-                teamsURLs = teamsURLs + mapping.TeamURL + '\n';
                 groupList.push(mapping.O365GroupId);
                 setTimeout(await postUserGroup(mapping.O365GroupId, userId), 50);
               }
@@ -388,7 +385,7 @@ export async function inviteUser(user, mappings) {
 
         if (sendMail) {
           try {
-            await sendInvitationMail(user, teamsURLs);
+            await sendInvitationMail(user);
             user.LastInvitationDate = new Date();
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.Mail);
