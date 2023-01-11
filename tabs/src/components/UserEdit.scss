@@ -1,3 +1,5 @@
+@import '../variables.scss';
+
 .narrow {
   max-width: 900px;
   margin: 0 auto;
@@ -67,10 +69,24 @@ code {
 .row {
   display: flex;
   flex-direction: row;
+
+  @media (max-width: map-get($breakpoints, md)) {
+    flex-direction: column;
+  }
 }
 
 .control {
   margin: 0.35rem;
+
+  @media (max-width: map-get($breakpoints, md)) {
+    width: 100% !important;
+  }
+}
+
+.edit-user {
+  @media (max-width: map-get($breakpoints, md)) {
+    width: 95%;
+  }
 }
 
 .main {
@@ -90,5 +106,14 @@ code {
 
 .small-width {
   width: 25% !important;
+
+  @media (max-width: map-get($breakpoints, md)) {
+    width: 100% !important;
+  }
+
   min-width: 150px !important;
+
+  @media (max-width: map-get($breakpoints, md)) {
+    min-width: 0px !important;
+  }
 }

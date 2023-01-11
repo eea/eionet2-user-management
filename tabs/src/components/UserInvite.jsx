@@ -3,7 +3,7 @@ import { getUserByMail, inviteUser } from '../data/provider';
 import { getMappingsList } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import validator from 'validator';
-import './UserInvite.css';
+import './UserInvite.scss';
 import { UserEdit } from './UserEdit';
 import { Box, CircularProgress, FormLabel, TextField, Button } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
@@ -86,7 +86,7 @@ export function UserInvite({ userInfo, refreshList }) {
     };
 
   return (
-    <div className="welcome page main">
+    <div className="welcome page main user-invite">
       <div className="page-size">
         <div className="row">
           {emailCheckVisible && (
@@ -110,7 +110,7 @@ export function UserInvite({ userInfo, refreshList }) {
               <div className="row">
                 <TextField
                   required
-                  className="control"
+                  className="control invite-input"
                   id="firstName"
                   label="Email"
                   variant="standard"

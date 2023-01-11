@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { editUser, resendInvitation } from '../data/provider';
 import { getComboLists, getOrganisationList, getMappingsList } from '../data/sharepointProvider';
 import { validateName, validatePhone, validateMandatoryField } from '../data/validator';
-import './UserEdit.css';
+import './UserEdit.scss';
 import messages from '../data/messages.json';
 import {
   Box,
@@ -194,7 +194,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
   }, [userInfo, user, newYN]);
 
   return (
-    <div className="welcome page main">
+    <div className="welcome page main edit-user">
       <div>
         <Backdrop
           sx={{ color: '#6b32a8', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -218,15 +218,12 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               disablePortal
               id="combo-box-gender"
               className="small-width"
-              defaultValue={{
-                id: user.Gender,
-                label: user.GenderTitle,
-              }}
+              defaultValue={user.Gender}
               options={genders}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
+              isOptionEqualToValue={(option, value) => option === value}
               onChange={(e, value) => {
-                user.Gender = value ? value.id : '';
-                user.GenderTitle = value ? value.label : '';
+                user.Gender = value ? value : '';
+                user.GenderTitle = value ? value : '';
               }}
               renderInput={(params) => (
                 <TextField
@@ -294,6 +291,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   {...params}
                   label="Country"
                   variant="standard"
+                  className="control"
                   error={Boolean(errors?.country)}
                   helperText={errors?.country}
                   onBlur={validateField}
@@ -353,6 +351,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               }}
               renderInput={(params) => (
                 <TextField
+                  className="control"
                   required
                   {...params}
                   label="Organisation"
@@ -379,6 +378,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 }}
                 renderInput={(params) => (
                   <TextField
+                    className="control"
                     {...params}
                     required
                     autoComplete="off"
@@ -405,6 +405,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 }}
                 renderInput={(params) => (
                   <TextField
+                    className="control"
                     {...params}
                     autoComplete="off"
                     variant="standard"
@@ -427,6 +428,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 }}
                 renderInput={(params) => (
                   <TextField
+                    className="control"
                     {...params}
                     autoComplete="off"
                     variant="standard"
@@ -445,7 +447,13 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   user.NFP = value;
                 }}
                 renderInput={(params) => (
-                  <TextField autoComplete="off" {...params} label="NFP" variant="standard" />
+                  <TextField
+                    className="control"
+                    autoComplete="off"
+                    {...params}
+                    label="NFP"
+                    variant="standard"
+                  />
                 )}
               />
             )}
