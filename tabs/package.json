@@ -57,7 +57,8 @@
     "prettier": "node_modules/.bin/prettier --single-quote --check 'src/**/*.{js,jsx,json,css,scss,md}'",
     "prettier:fix": "node_modules/.bin/prettier --single-quote --write 'src/**/*.{js,jsx,json,css,scss,md}'",
     "lint": "node_modules/eslint/bin/eslint.js --max-warnings=0 'src/**/*.{js,jsx}'",
-    "lint:fix": "node_modules/eslint/bin/eslint.js --fix 'src/**/*.{js,jsx}'"
+    "lint:fix": "node_modules/eslint/bin/eslint.js --fix 'src/**/*.{js,jsx}'",
+    "pc": "npm run stylelint:fix & npm run prettier:fix & npm run lint:fix & npm run test"
   },
   "eslintConfig": {
     "extends": [

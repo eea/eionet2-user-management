@@ -45,6 +45,8 @@ export async function getMappingsList() {
           O365GroupId: mapping.fields.O365GroupId,
           Membership: mapping.fields.Membership,
           Tag: mapping.fields.Tag,
+          MailingGroupId: mapping.fields.MailingGroupId,
+          AdditionalGroupId: mapping.fields.AdditionalGroupId,
         };
       });
     }
