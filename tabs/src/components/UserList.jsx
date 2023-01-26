@@ -56,8 +56,8 @@ export function UserList({ userInfo }) {
   const renderButtons = (params) => {
       const showRemoveMemberships =
           userInfo.isNFP &&
-          (params.row?.OtherMemberships?.length || params.row?.NFP) &&
-          params.row?.Membership?.length,
+          (params.row?.OtherMemberships?.length > 0 || params.row?.NFP) &&
+          params.row?.Membership?.length > 0,
         showRemoveUser =
           (userInfo.isNFP && !params.row?.OtherMemberships?.length && !params.row?.NFP) ||
           userInfo.isAdmin;
@@ -308,15 +308,16 @@ export function UserList({ userInfo }) {
   useEffect(() => {
     (async () => {
       setloading(true);
+      let configuration = await getConfiguration();
+      if (configuration) {
+        setConfiguration(configuration);
+      }
       let invitedUsers = await getInvitedUsers(userInfo);
       if (invitedUsers) {
         setUsers(invitedUsers);
         setFilteredUsers(invitedUsers);
       }
-      let configuration = await getConfiguration();
-      if (configuration) {
-        setConfiguration(configuration);
-      }
+
       setloading(false);
     })();
   }, []);
