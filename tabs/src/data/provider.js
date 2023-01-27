@@ -21,9 +21,10 @@ function wrapError(err, message) {
 
 const directoryObjectsPath = 'https://graph.microsoft.com/v1.0/directoryObjects/';
 async function postUserGroup(groupId, userId) {
-  await apiPost('/groups/' + groupId + '/members/$ref', {
-    '@odata.id': directoryObjectsPath + userId,
-  });
+  groupId &&
+    (await apiPost('/groups/' + groupId + '/members/$ref', {
+      '@odata.id': directoryObjectsPath + userId,
+    }));
 }
 
 let _profile = undefined;
@@ -282,6 +283,23 @@ async function sendInvitationMail(user) {
   });
 }
 
+function getDistinctGroupsIds(mappings) {
+  let groupIds = mappings.map((m) => m.O365GroupId);
+
+  groupIds = groupIds.concat(mappings.map((m) => m.AdditionalGroupId));
+  groupIds = groupIds.concat(mappings.map((m) => m.MailingGroupId));
+
+  return [...new Set(groupIds.filter((g) => !!g))];
+}
+
+async function getExistingGroups(userId, groupIds) {
+  const result = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
+    groupIds: groupIds,
+  });
+
+  return result?.graphClientMessage?.value;
+}
+
 export async function inviteUser(user, mappings) {
   capitalizeName(user);
   try {
@@ -336,14 +354,18 @@ export async function inviteUser(user, mappings) {
 
     if (userId) {
       try {
-        let groupList = [];
         //If NFP save to NFPs groups and Main EIONET group
         if (user.NFP) {
           try {
-            await postUserGroup(config.NFPGroupId, userId);
-            groupList.push(config.MainEionetGroupId);
+            const groupIds = [
+              ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
+            ];
 
-            await postUserGroup(config.MainEionetGroupId, userId);
+            const existingGroups = await (userId, groupIds);
+
+            for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
+              await postUserGroup(groupId, userId);
+            }
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
           }
@@ -366,19 +388,17 @@ export async function inviteUser(user, mappings) {
             //Set groups and tags
             try {
               const groupIds = [
-                mapping.O365GroupId,
-                mapping.MailingGroupId,
-                mapping.AdditionalGroupId,
+                ...new Set(
+                  [mapping.O365GroupId, mapping.MailingGroupId, mapping.AdditionalGroupId].filter(
+                    (g) => !!g,
+                  ),
+                ),
               ];
-              const existingGroups = apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
-                groupIds: groupIds,
-              })?.graphClientMessage?.value;
+
+              const existingGroups = await getExistingGroups(userId, groupIds);
 
               for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
-                if (!groupList.includes(groupId)) {
-                  groupList.push(groupId);
-                  setTimeout(await postUserGroup(groupId, userId), 50);
-                }
+                await postUserGroup(groupId, userId);
               }
             } catch (err) {
               return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
@@ -419,15 +439,6 @@ export async function inviteUser(user, mappings) {
   }
 }
 
-function getDistinctGroupsIds(mappings) {
-  let groupIds = mappings.map((m) => m.O365GroupId);
-
-  groupIds = groupIds.concat(mappings.map((m) => m.AdditionalGroupId));
-  groupIds = groupIds.concat(mappings.map((m) => m.MailingGroupId));
-
-  return [...new Set(groupIds)];
-}
-
 export async function editUser(user, mappings, oldValues) {
   capitalizeName(user);
   try {
@@ -447,14 +458,14 @@ export async function editUser(user, mappings, oldValues) {
       oldTags = [...new Set(oldMappings.filter((m) => m.Tag))],
       config = await getConfiguration();
 
-    newGroups.forEach(async (groupId) => {
-      if (!oldGroups.includes(groupId)) {
-        setTimeout(await postUserGroup(groupId, user.ADUserId), 50);
+    const existingGroups = await getExistingGroups(user.ADUserId, newGroups);
 
-        const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
-        groupMapping[0]?.Tag && addTag(groupId, user.Country, user.ADUserId);
-      }
-    });
+    for (const groupId of newGroups.filter((id) => !existingGroups?.includes(id))) {
+      await postUserGroup(groupId, user.ADUserId);
+
+      const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
+      groupMapping[0]?.Tag && addTag(groupId, user.Country, user.ADUserId);
+    }
 
     newTags.forEach((m) => {
       if (!oldTags.includes(m)) {
@@ -468,14 +479,23 @@ export async function editUser(user, mappings, oldValues) {
       }
     });
 
-    oldGroups.forEach(async (groupId) => {
+    for (const groupId of oldGroups) {
       if (!newGroups.includes(groupId) && !(user.NFP && groupId === config.MainEionetGroupId)) {
-        setTimeout(
-          await apiDelete('/groups/' + groupId + '/members/' + user.ADUserId + '/$ref'),
-          50,
-        );
+        try {
+          await apiDelete('/groups/' + groupId + '/members/' + user.ADUserId + '/$ref');
+        } catch (err) {
+          logInfo(
+            'Group removal returned error. ',
+            '',
+            {
+              userId: user.ADUserId,
+              groupId: groupId,
+            },
+            'Remove group',
+          );
+        }
       }
-    });
+    }
 
     if (oldValues.Country !== user.Country) {
       newMappings.forEach((m) => {
