@@ -1,6 +1,6 @@
 {
   "name": "@eeacms/eionet2-user-management",
-  "version": "0.1.0",
+  "version": "0.0.15",
   "license": "MIT",
   "description": "Teams app for managing Eionet users.",
   "dependencies": {
@@ -46,9 +46,9 @@
     "prepare": "npm run build",
     "test": "jest",
     "dev:teamsfx": "env-cmd --silent -f .env.teamsfx.local npm run start",
-    "start": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
+    "start": "cross-env REACT_APP_VERSION=$npm_package_version GENERATE_SOURCEMAP=false react-scripts start",
     "install:teamsfx": "npm install",
-    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "cross-env REACT_APP_VERSION=$npm_package_version GENERATE_SOURCEMAP=false react-scripts build",
     "build:teamsfx": "cross-env-shell \"env-cmd -f .env.teamsfx.${TEAMS_FX_ENV} npm run build\"",
     "build:teamsfx:dev": "cross-env TEAMS_FX_ENV=dev npm run build:teamsfx",
     "eject": "react-scripts eject",

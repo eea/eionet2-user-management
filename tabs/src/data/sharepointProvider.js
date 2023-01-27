@@ -41,7 +41,6 @@ export async function getMappingsList() {
       mappingsList = response.graphClientMessage.value.map(function (mapping) {
         return {
           TeamURL: mapping.fields.TeamURL,
-          O365Group: mapping.fields.O365group,
           O365GroupId: mapping.fields.O365GroupId,
           Membership: mapping.fields.Membership,
           Tag: mapping.fields.Tag,

@@ -1,7 +1,7 @@
 import { React, useState, useEffect } from 'react';
 import { getMe } from '../data/provider';
 import { UserList } from './UserList';
-import { Backdrop, CircularProgress } from '@mui/material';
+import { Backdrop, CircularProgress, Typography } from '@mui/material';
 
 const showFunction = Boolean(process.env.REACT_APP_FUNC_NAME);
 
@@ -40,6 +40,7 @@ export default function EditTab() {
       {userInfo.isLoaded && !userInfo.isGuest && (
         <UserList showFunction={showFunction} userInfo={userInfo} />
       )}
+      <Typography sx={{ marginLeft: '1rem' }}>{`${process.env.REACT_APP_VERSION}`}</Typography>
     </div>
   );
 }
