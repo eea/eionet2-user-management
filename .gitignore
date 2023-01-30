@@ -5,8 +5,11 @@ node_modules
 .archive
 .archive.log
 .env.teamsfx.local
+.env.teamsfx.Prod_EEA
 subscriptionInfo.json
 build
 .fx/configs/config.local.json
+.fx/configs/config.Prod_EEA.json
 .fx/states/state.local.json
+.fx/states/state.Prod_EEA.json
 .backup
