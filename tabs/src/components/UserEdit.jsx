@@ -98,12 +98,12 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
       }
     },
     loadOrganisations = async () => {
-      let organisations = await getOrganisationList(user.Country);
-      if (organisations) {
-        setOrganisations(organisations);
+      let loadedOrganisations = await getOrganisationList(user.Country);
+      if (loadedOrganisations) {
+        setOrganisations(loadedOrganisations);
       }
 
-      const userOrganisation = organisations.filter((o) => o.header === user.Organisation);
+      const userOrganisation = loadedOrganisations.filter((o) => o.header === user.Organisation);
       userOrganisation[0] && setUnspecifiedOrg(userOrganisation[0].unspecified);
     },
     validateMembership = () => {
@@ -184,10 +184,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
       }
       loadOrganisations();
 
-      let mappings = await getMappingsList();
-      if (mappings) {
-        setMappings(mappings);
-      }
+      let loadedMappings = await getMappingsList();
+      loadedMappings && setMappings(loadedMappings);
 
       setDataFetching(false);
     })();
@@ -221,7 +219,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               defaultValue={user.Gender}
               options={genders}
               isOptionEqualToValue={(option, value) => option === value}
-              onChange={(e, value) => {
+              onChange={(_e, value) => {
                 user.Gender = value ? value : '';
                 user.GenderTitle = value ? value : '';
               }}
@@ -373,7 +371,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 defaultValue={user.Membership}
                 options={memberships}
                 getOptionLabel={(option) => option}
-                onChange={(e, value) => {
+                onChange={(_e, value) => {
                   user.Membership = value;
                 }}
                 renderInput={(params) => (
@@ -400,7 +398,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 defaultValue={user.Membership}
                 options={memberships}
                 getOptionLabel={(option) => option}
-                onChange={(e, value) => {
+                onChange={(_e, value) => {
                   user.Membership = value;
                 }}
                 renderInput={(params) => (
@@ -423,7 +421,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 defaultValue={user.OtherMemberships}
                 options={otherMemberships}
                 getOptionLabel={(option) => option}
-                onChange={(e, value) => {
+                onChange={(_e, value) => {
                   user.OtherMemberships = value;
                 }}
                 renderInput={(params) => (

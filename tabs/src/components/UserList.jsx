@@ -145,7 +145,7 @@ export function UserList({ userInfo }) {
         </div>
       );
     },
-    handleAlertClose = (event, reason) => {
+    handleAlertClose = (_event, reason) => {
       if (reason === 'clickaway') {
         return;
       }
@@ -248,7 +248,7 @@ export function UserList({ userInfo }) {
       setSelectedUser({});
       setAddFormVisible(false);
     },
-    handleSnackbarClose = (event, reason) => {
+    handleSnackbarClose = (_event, reason) => {
       if (reason === 'clickaway') {
         return;
       }
@@ -308,9 +308,9 @@ export function UserList({ userInfo }) {
   useEffect(() => {
     (async () => {
       setloading(true);
-      let configuration = await getConfiguration();
-      if (configuration) {
-        setConfiguration(configuration);
+      let loadedConfiguration = await getConfiguration();
+      if (loadedConfiguration) {
+        setConfiguration(loadedConfiguration);
       }
       let invitedUsers = await getInvitedUsers(userInfo);
       if (invitedUsers) {

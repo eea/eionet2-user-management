@@ -131,7 +131,6 @@ module.exports = async function (context, req, teamsfxContext) {
     res.body.graphClientMessage = result;
 
   } catch (e) {
-    //context.log.error(e);
     return {
       status: 500,
       body: {
