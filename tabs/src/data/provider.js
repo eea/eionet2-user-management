@@ -361,7 +361,7 @@ export async function inviteUser(user, mappings) {
               ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
             ];
 
-            const existingGroups = await (userId, groupIds);
+            const existingGroups = await getExistingGroups(userId, groupIds);
 
             for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
               await postUserGroup(groupId, userId);

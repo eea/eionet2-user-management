@@ -441,7 +441,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 id="nfp"
                 defaultValue={user.NFP}
                 options={nfps}
-                onChange={(e, value) => {
+                onChange={(_e, value) => {
                   user.NFP = value;
                 }}
                 renderInput={(params) => (

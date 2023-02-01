@@ -1,7 +1,6 @@
 import { React, useState, useEffect } from 'react';
-import { logInfo } from '../data/apiProvider';
 import { getUser, removeUser, removeUserMemberships, getUserGroups } from '../data/provider';
-import { getConfiguration } from '../data/apiProvider';
+import { logInfo, getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { useMediaQuery } from 'react-responsive';
