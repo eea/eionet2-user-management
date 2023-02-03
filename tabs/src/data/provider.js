@@ -55,7 +55,9 @@ export async function getMe() {
 
 export async function getUserByMail(email) {
   try {
-    const adResponse = await apiGet("/users/?$filter=mail eq '" + email?.replace("'", "''") + "'"),
+    const adResponse = await apiGet(
+        "/users/?$filter=mail eq '" + email?.replaceAll("'", "''") + "'",
+      ),
       spUser = await getSPUserByMail(email),
       adMessage = adResponse.graphClientMessage;
 
