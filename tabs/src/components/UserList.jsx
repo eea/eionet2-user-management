@@ -1,7 +1,6 @@
 import { React, useState, useEffect } from 'react';
-import { logInfo } from '../data/apiProvider';
 import { getUser, removeUser, removeUserMemberships, getUserGroups } from '../data/provider';
-import { getConfiguration } from '../data/apiProvider';
+import { logInfo, getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { useMediaQuery } from 'react-responsive';
@@ -145,7 +144,7 @@ export function UserList({ userInfo }) {
         </div>
       );
     },
-    handleAlertClose = (event, reason) => {
+    handleAlertClose = (_event, reason) => {
       if (reason === 'clickaway') {
         return;
       }
@@ -248,7 +247,7 @@ export function UserList({ userInfo }) {
       setSelectedUser({});
       setAddFormVisible(false);
     },
-    handleSnackbarClose = (event, reason) => {
+    handleSnackbarClose = (_event, reason) => {
       if (reason === 'clickaway') {
         return;
       }
@@ -308,9 +307,9 @@ export function UserList({ userInfo }) {
   useEffect(() => {
     (async () => {
       setloading(true);
-      let configuration = await getConfiguration();
-      if (configuration) {
-        setConfiguration(configuration);
+      let loadedConfiguration = await getConfiguration();
+      if (loadedConfiguration) {
+        setConfiguration(loadedConfiguration);
       }
       let invitedUsers = await getInvitedUsers(userInfo);
       if (invitedUsers) {

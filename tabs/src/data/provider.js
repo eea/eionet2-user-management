@@ -55,7 +55,9 @@ export async function getMe() {
 
 export async function getUserByMail(email) {
   try {
-    const adResponse = await apiGet("/users/?$filter=mail eq '" + email + "'"),
+    const adResponse = await apiGet(
+        "/users/?$filter=mail eq '" + email?.replaceAll("'", "''") + "'",
+      ),
       spUser = await getSPUserByMail(email),
       adMessage = adResponse.graphClientMessage;
 
@@ -293,11 +295,14 @@ function getDistinctGroupsIds(mappings) {
 }
 
 async function getExistingGroups(userId, groupIds) {
-  const result = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
-    groupIds: groupIds,
-  });
+  if (groupIds && groupIds.length > 0) {
+    const result = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
+      groupIds: groupIds,
+    });
 
-  return result?.graphClientMessage?.value;
+    return result?.graphClientMessage?.value;
+  }
+  return [];
 }
 
 export async function inviteUser(user, mappings) {
@@ -361,7 +366,7 @@ export async function inviteUser(user, mappings) {
               ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
             ];
 
-            const existingGroups = await (userId, groupIds);
+            const existingGroups = await getExistingGroups(userId, groupIds);
 
             for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
               await postUserGroup(groupId, userId);

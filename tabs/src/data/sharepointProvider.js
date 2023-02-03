@@ -99,7 +99,7 @@ export async function getSPUserByMail(email) {
         '/lists/' +
         config.UserListId +
         "/items?$filter=fields/Email eq '" +
-        email +
+        email?.replaceAll("'", "''") +
         "'&$expand=fields",
       response = await apiGet(path),
       profile = response.graphClientMessage;

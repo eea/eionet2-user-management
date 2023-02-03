@@ -42,10 +42,8 @@ export function UserInvite({ userInfo, refreshList }) {
         selectedUser.Country = userInfo.country;
       }
 
-      let mapppings = await getMappingsList();
-      if (mapppings) {
-        setMappings(mapppings);
-      }
+      let loadedMappings = await getMappingsList();
+      loadedMappings && setMappings(loadedMappings);
     })();
   }, [selectedUser, userInfo]);
 

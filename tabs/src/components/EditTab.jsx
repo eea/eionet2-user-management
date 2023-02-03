@@ -40,7 +40,9 @@ export default function EditTab() {
       {userInfo.isLoaded && !userInfo.isGuest && (
         <UserList showFunction={showFunction} userInfo={userInfo} />
       )}
-      <Typography sx={{ marginLeft: '1rem' }}>{`${process.env.REACT_APP_VERSION}`}</Typography>
+      <Typography sx={{ position: 'absolute', bottom: '0', left: '0', width: '100%', zIndex: 1 }}>
+        v{`${process.env.REACT_APP_VERSION}`}
+      </Typography>
     </div>
   );
 }
