@@ -33,6 +33,7 @@ import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 import Snack from './Snack';
 import DeleteDialog from './DeleteDialog';
+import CustomColumnResizeIcon from './CustomColumnResizeIcon';
 
 export function UserList({ userInfo }) {
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
@@ -439,6 +440,9 @@ export function UserList({ userInfo }) {
         </div>
         <div className="user-list">
           <DataGrid
+            components={{
+              ColumnResizeIcon: CustomColumnResizeIcon,
+            }}
             rows={filteredUsers}
             columns={columns}
             pageSize={100}

@@ -1,6 +1,6 @@
 {
   "name": "@eeacms/eionet2-user-management",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "license": "MIT",
   "description": "Teams app for managing Eionet users.",
   "dependencies": {
