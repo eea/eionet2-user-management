@@ -4,7 +4,6 @@ import { logInfo, getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { useMediaQuery } from 'react-responsive';
-import { DataGrid } from '@mui/x-data-grid';
 import './UserList.scss';
 import {
   TextField,
@@ -33,7 +32,7 @@ import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 import Snack from './Snack';
 import DeleteDialog from './DeleteDialog';
-import CustomColumnResizeIcon from './CustomColumnResizeIcon';
+import ResizableGrid from './ResizableGrid';
 
 export function UserList({ userInfo }) {
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
@@ -439,12 +438,9 @@ export function UserList({ userInfo }) {
           </div>
         </div>
         <div className="user-list">
-          <DataGrid
-            components={{
-              ColumnResizeIcon: CustomColumnResizeIcon,
-            }}
-            rows={filteredUsers}
+          <ResizableGrid
             columns={columns}
+            rows={filteredUsers}
             pageSize={100}
             rowsPerPageOptions={[100]}
             hideFooterSelectedRowCount={true}
@@ -461,7 +457,7 @@ export function UserList({ userInfo }) {
             getRowHeight={() => {
               return 36;
             }}
-          />
+          ></ResizableGrid>
         </div>
         <Dialog open={formVisible} onClose={handleClose} maxWidth="xl">
           <DialogTitle>
