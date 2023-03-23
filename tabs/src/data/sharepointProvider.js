@@ -124,41 +124,51 @@ export async function getInvitedUsers(userInfo) {
     if (userInfo.isNFP) {
       path += "&$filter=fields/Country eq '" + userInfo.country + "'";
     }
-    const response = await apiGet(path),
-      users = await response.graphClientMessage,
-      organisations = await getOrganisationList();
 
-    return users.value.map(function (user) {
-      let organisation = organisations.find((o) => o.content === user.fields.OrganisationLookupId);
+    let result = [];
+    const organisations = await getOrganisationList();
+    while (path) {
+      const response = await apiGet(path),
+        users = await response.graphClientMessage;
 
-      //concatenate memberships, otherMemberships and NFP in one field to display in grid
-      let memberships = (user.fields.Membership || []).concat(user.fields.OtherMemberships || []);
-      user.fields.NFP && memberships.push(user.fields.NFP);
+      users.value.forEach(function (user) {
+        let organisation = organisations.find(
+          (o) => o.content === user.fields.OrganisationLookupId,
+        );
 
-      return {
-        Title: user.fields.Title,
-        Email: user.fields.Email,
-        Membership: user.fields.Membership,
-        MembershipString: memberships && memberships.toString(),
-        OtherMemberships: user.fields.OtherMemberships,
-        OtherMembershipsString:
-          user.fields.OtherMemberships && user.fields.OtherMemberships.toString(),
-        Country: user.fields.Country ? user.fields.Country : '',
-        OrganisationLookupId: user.fields.OrganisationLookupId,
-        Organisation: organisation ? organisation.header : '',
-        Phone: user.fields.Phone,
-        ADUserId: user.fields.ADUserId,
-        Gender: user.fields.Gender ? user.fields.Gender : '',
-        GenderTitle: user.fields.Gender ? user.fields.Gender : '',
-        NFP: user.fields.NFP,
-        SignedIn: user.fields.SignedIn,
-        SuggestedOrganisation: user.fields.SuggestedOrganisation,
-        LastInvitationDate: user.fields.LastInvitationDate
-          ? user.fields.LastInvitationDate
-          : user.createdDateTime,
-        id: user.fields.id,
-      };
-    });
+        //concatenate memberships, otherMemberships and NFP in one field to display in grid
+        let memberships = (user.fields.Membership || []).concat(user.fields.OtherMemberships || []);
+        user.fields.NFP && memberships.push(user.fields.NFP);
+
+        result.push({
+          Title: user.fields.Title,
+          Email: user.fields.Email,
+          Membership: user.fields.Membership,
+          MembershipString: memberships && memberships.toString(),
+          OtherMemberships: user.fields.OtherMemberships,
+          OtherMembershipsString:
+            user.fields.OtherMemberships && user.fields.OtherMemberships.toString(),
+          Country: user.fields.Country ? user.fields.Country : '',
+          OrganisationLookupId: user.fields.OrganisationLookupId,
+          Organisation: organisation ? organisation.header : '',
+          Phone: user.fields.Phone,
+          ADUserId: user.fields.ADUserId,
+          Gender: user.fields.Gender ? user.fields.Gender : '',
+          GenderTitle: user.fields.Gender ? user.fields.Gender : '',
+          NFP: user.fields.NFP,
+          SignedIn: user.fields.SignedIn,
+          SuggestedOrganisation: user.fields.SuggestedOrganisation,
+          LastInvitationDate: user.fields.LastInvitationDate
+            ? user.fields.LastInvitationDate
+            : user.createdDateTime,
+          id: user.fields.id,
+        });
+      });
+
+      path = users['@odata.nextLink'];
+    }
+
+    return result;
   } catch (err) {
     console.log(err);
   }
