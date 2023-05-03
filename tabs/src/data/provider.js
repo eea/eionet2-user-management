@@ -1,15 +1,14 @@
 import { apiGet, apiPost, apiPatch, apiDelete, getConfiguration, logInfo } from './apiProvider';
 import { getMappingsList, getSPUserByMail } from './sharepointProvider';
+import {
+  getDistinctGroupsIds,
+  buildTeamsURLs,
+  capitalizeName,
+  buildUserDisplaName,
+} from './providerHelper';
+import { addTag, removeTag } from './tagProvider';
 import messages from './messages.json';
-
-const capitalizeFirst = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-function capitalizeName(user) {
-  user.FirstName = capitalizeFirst(user.FirstName);
-  user.LastName = capitalizeFirst(user.LastName);
-}
+import * as constants from './constants';
 
 function wrapError(err, message) {
   return {
@@ -19,11 +18,10 @@ function wrapError(err, message) {
   };
 }
 
-const directoryObjectsPath = 'https://graph.microsoft.com/v1.0/directoryObjects/';
 async function postUserGroup(groupId, userId) {
   groupId &&
     (await apiPost('/groups/' + groupId + '/members/$ref', {
-      '@odata.id': directoryObjectsPath + userId,
+      '@odata.id': constants.DIRECTORY_OBJECTS_PATH + userId,
     }));
 }
 
@@ -105,75 +103,11 @@ export async function getUserGroups(userId) {
   }
 }
 
-async function addTag(teamId, name, userId) {
-  let response = await apiGet('/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'");
-
-  if (response.graphClientMessage.value && response.graphClientMessage.value.length) {
-    let existingTag = response.graphClientMessage.value[0],
-      tagMemberIdResponse = await apiGet(
-        '/teams/' +
-          teamId +
-          '/tags/' +
-          existingTag.id +
-          "/members?$filter=userId eq '" +
-          userId +
-          "'",
-      );
-
-    if (
-      !tagMemberIdResponse.graphClientMessage.value ||
-      !tagMemberIdResponse.graphClientMessage.value.length
-    ) {
-      await apiPost('/teams/' + teamId + '/tags/' + existingTag.id + '/members', {
-        userId: userId,
-      });
-    }
-  } else {
-    await apiPost('/teams/' + teamId + '/tags', {
-      displayName: name,
-      members: [
-        {
-          userId: userId,
-        },
-      ],
-    });
-  }
-}
-
-async function removeTag(teamId, name, userId) {
-  const response = await apiGet('/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'");
-
-  if (response.graphClientMessage.value && response.graphClientMessage.value.length) {
-    let existingTag = response.graphClientMessage.value[0],
-      tagMemberIdResponse = await apiGet(
-        '/teams/' +
-          teamId +
-          '/tags/' +
-          existingTag.id +
-          "/members?$filter=userId eq '" +
-          userId +
-          "'",
-      );
-
-    if (
-      tagMemberIdResponse.graphClientMessage.value &&
-      tagMemberIdResponse.graphClientMessage.value.length
-    ) {
-      let tagMemberId = tagMemberIdResponse.graphClientMessage.value[0].id;
-      await apiDelete('/teams/' + teamId + '/tags/' + existingTag.id + '/members/' + tagMemberId);
-    }
-  }
-}
-
 async function saveADUser(userId, userData) {
-  let displayName = userData.FirstName + ' ' + userData.LastName + ' (' + userData.Country + ')';
-  if (userData.NFP) {
-    displayName = userData.FirstName + ' ' + userData.LastName + ' (NFP-' + userData.Country + ')';
-  }
   await apiPatch('/users/' + userId, {
     givenName: userData.FirstName,
     surname: userData.LastName,
-    displayName: displayName,
+    displayName: buildUserDisplaName(userData),
     department: 'Eionet',
     country: userData.Country,
   });
@@ -217,10 +151,14 @@ async function sendOrgSuggestionNotification(info) {
 
 async function saveSPUser(userId, userData, newYN, oldValues) {
   const spConfig = await getConfiguration();
-
+  let isMfaRegistered = false;
   if (newYN) {
     userData.LastInvitationDate = new Date();
+    const mfaResponse = await checkMFAStatus(buildUserDisplaName(userData));
+    isMfaRegistered =
+      mfaResponse.value && mfaResponse.value.length > 0 && mfaResponse.value[0].isMfaRegistered;
   }
+  userData.Title = userData.FirstName + ' ' + userData.LastName;
   let fields = {
     fields: {
       Phone: userData.Phone,
@@ -235,13 +173,15 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
         OtherMemberships: userData.OtherMemberships,
       }),
       ...(userData.LastInvitationDate && { LastInvitationDate: userData.LastInvitationDate }),
-      Title: userData.FirstName + ' ' + userData.LastName,
+      Title: userData.Title,
       Gender: userData.Gender,
       Organisation: userData.Organisation,
       OrganisationLookupId: userData.OrganisationLookupId,
       ADUserId: userId,
       NFP: userData.NFP,
       SuggestedOrganisation: userData.SuggestedOrganisation,
+      ...(isMfaRegistered && { SignedIn: true }),
+      ...(isMfaRegistered && { SignedInDate: new Date() }),
     },
   };
 
@@ -262,9 +202,24 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
   }
 }
 
+async function checkMFAStatus(userDisplayName) {
+  try {
+    const response = await apiGet(
+      "/reports/credentialUserRegistrationDetails?$filter=userDisplayName eq '" +
+        userDisplayName.replace("'", "''") +
+        "'",
+    );
+    return response.graphClientMessage;
+  } catch (err) {
+    console.log(err);
+    return undefined;
+  }
+}
+
 async function sendInvitationMail(user) {
   const config = await getConfiguration(),
-    teamsURLs = await buildTeamsURLs(user);
+    mappings = await getMappingsList(),
+    teamsURLs = await buildTeamsURLs(user, mappings, config);
 
   await apiPost('users/' + config.FromEmailAddress + '/sendMail', {
     message: {
@@ -283,15 +238,6 @@ async function sendInvitationMail(user) {
     },
     saveToSentItems: true,
   });
-}
-
-function getDistinctGroupsIds(mappings) {
-  let groupIds = mappings.map((m) => m.O365GroupId);
-
-  groupIds = groupIds.concat(mappings.map((m) => m.AdditionalGroupId));
-  groupIds = groupIds.concat(mappings.map((m) => m.MailingGroupId));
-
-  return [...new Set(groupIds.filter((g) => !!g))];
 }
 
 async function getExistingGroups(userId, groupIds) {
@@ -633,28 +579,6 @@ export async function removeUser(user) {
     return { Success: true };
   }
   return false;
-}
-
-async function buildTeamsURLs(user) {
-  const mappings = await getMappingsList(),
-    config = await getConfiguration();
-
-  let teamURLs = mappings
-    .filter(
-      (m) =>
-        (user.Membership && user.Membership.includes(m.Membership)) ||
-        (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
-    )
-    .map((mapping) => {
-      return mapping.TeamURL;
-    });
-
-  user.NFP &&
-    teamURLs.push(mappings.find((m) => m.O365GroupId === config.MainEionetGroupId).TeamURL);
-
-  let uniqueUrls = [...new Set(teamURLs)];
-
-  return uniqueUrls.join('\n');
 }
 
 export async function resendInvitation(user, mappings, oldValues) {

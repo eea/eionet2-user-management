@@ -13,13 +13,22 @@ export async function getOrganisationList(country) {
       path += "&$filter=fields/Country eq '" + country + "' or fields/Unspecified eq 1";
     }
     const response = await apiGet(path);
-    return response.graphClientMessage.value.map(function (organisation) {
-      return {
-        header: organisation.fields.Title,
-        content: organisation.id,
-        unspecified: organisation.fields.Unspecified,
-      };
-    });
+    const result = response.graphClientMessage.value
+      .map(function (organisation) {
+        return {
+          header: organisation.fields.Title,
+          content: organisation.id,
+          unspecified: organisation.fields.Unspecified,
+        };
+      })
+      .sort((a, b) => {
+        return a.header > b.header ? 1 : b.header > a.header ? -1 : 0;
+      });
+
+    return [
+      ...result.filter(({ unspecified }) => !unspecified),
+      ...result.filter(({ unspecified }) => unspecified),
+    ];
   } catch (err) {
     console.log(err);
     return [];
@@ -73,11 +82,11 @@ export async function getComboLists() {
     }
     let membershipColumn = columns.find((column) => column.name === 'Membership');
     if (membershipColumn && membershipColumn.choice) {
-      lists.memberships = membershipColumn.choice.choices;
+      lists.memberships = membershipColumn.choice.choices.sort();
     }
     let otherMembershipColumn = columns.find((column) => column.name === 'OtherMemberships');
     if (otherMembershipColumn && otherMembershipColumn.choice) {
-      lists.otherMemberships = otherMembershipColumn.choice.choices;
+      lists.otherMemberships = otherMembershipColumn.choice.choices.sort();
     }
     let nfpColumn = columns.find((column) => column.name === 'NFP');
     if (nfpColumn && nfpColumn.choice) {
@@ -161,11 +170,18 @@ export async function getInvitedUsers(userInfo) {
           LastInvitationDate: user.fields.LastInvitationDate
             ? user.fields.LastInvitationDate
             : user.createdDateTime,
+          EEANominated: user.fields.EEANominated,
           id: user.fields.id,
         });
       });
 
       path = users['@odata.nextLink'];
+    }
+
+    if (userInfo.isNFP) {
+      result = result.filter((user) => {
+        return user.Membership?.length > 0 || user.NFP;
+      });
     }
 
     return result;

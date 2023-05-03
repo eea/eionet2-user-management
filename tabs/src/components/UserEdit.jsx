@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from 'react';
+import { React, useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { editUser, resendInvitation } from '../data/provider';
 import { getComboLists, getOrganisationList, getMappingsList } from '../data/sharepointProvider';
@@ -14,13 +14,18 @@ import {
   CircularProgress,
   Backdrop,
   Link,
+  Checkbox,
+  Tooltip,
+  FormControlLabel,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
 import WarningIcon from '@mui/icons-material/Warning';
 
-export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
+export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo, configuration }) {
+  const user = useRef(JSON.parse(JSON.stringify(userEntity))).current;
+
   const [loading, setLoading] = useState(false),
     [dataFetching, setDataFetching] = useState(false),
     [success, setSuccess] = useState(false),
@@ -57,7 +62,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           switch (buttonId) {
             case 'submitNew': {
               setSuccess(false);
-              const addResult = await saveFunction();
+              const addResult = await saveFunction.apply(null, [user]);
               if (!addResult.Success) {
                 setWarningText(addResult.Message + '\n' + addResult.Error);
                 setSuccess(false);
@@ -73,7 +78,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 setSuccess(false);
               } else {
                 setOldValues(JSON.parse(JSON.stringify(user)));
-                (await refreshRow) && refreshRow(user);
+                userEntity = JSON.parse(JSON.stringify(user));
+                refreshRow && refreshRow(user);
               }
               setSuccess(true);
               break;
@@ -86,7 +92,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 setResendSuccess(false);
               } else {
                 setOldValues(JSON.parse(JSON.stringify(user)));
-                (await refreshRow) && refreshRow(user);
+                userEntity = JSON.parse(JSON.stringify(user));
+                refreshRow && refreshRow(user);
               }
               setResendSuccess(true);
               break;
@@ -122,6 +129,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
         tempErrors = { ...errors };
 
       switch (id) {
+        case 'gender':
+          tempErrors.gender = validateName(user.Gender);
+          break;
         case 'firstName':
           tempErrors.firstName = validateName(user.FirstName);
           break;
@@ -214,9 +224,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           <div className="row">
             <Autocomplete
               disablePortal
-              id="combo-box-gender"
+              id="gender"
               className="small-width"
-              defaultValue={user.Gender}
+              value={user.Gender}
               options={genders}
               isOptionEqualToValue={(option, value) => option === value}
               onChange={(_e, value) => {
@@ -225,11 +235,15 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               }}
               renderInput={(params) => (
                 <TextField
+                  required
                   {...params}
                   autoComplete="off"
                   className="small-width"
                   label="Salutation"
-                  variant="standard"
+                  variant="outlined"
+                  error={Boolean(errors?.gender)}
+                  helperText={errors?.gender}
+                  onBlur={validateField}
                 />
               )}
             />
@@ -241,8 +255,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               className="control"
               id="firstName"
               label="First name"
-              variant="standard"
-              defaultValue={user.FirstName}
+              variant="outlined"
+              value={user.FirstName}
               onChange={(e) => {
                 user.FirstName = e.target.value;
                 validateField(e);
@@ -258,8 +272,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               className="control"
               id="lastName"
               label="Last name"
-              variant="standard"
-              defaultValue={user.LastName}
+              variant="outlined"
+              value={user.LastName}
               onChange={(e) => {
                 user.LastName = e.target.value;
                 validateField(e);
@@ -270,10 +284,11 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               onBlur={validateField}
             />
             <Autocomplete
+              ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
               disablePortal
               disabled={userInfo.isNFP || userInfo.isGuest}
               id="country"
-              defaultValue={user.Country}
+              value={user.Country}
               options={countries}
               onChange={(e, value) => {
                 user.Country = value;
@@ -288,7 +303,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   autoComplete="off"
                   {...params}
                   label="Country"
-                  variant="standard"
+                  variant="outlined"
                   className="control"
                   error={Boolean(errors?.country)}
                   helperText={errors?.country}
@@ -303,8 +318,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               className="control"
               id="phone"
               label="Phone"
-              variant="standard"
-              defaultValue={user.Phone}
+              variant="outlined"
+              value={user.Phone}
               onChange={(e) => {
                 user.Phone = e.target.value;
                 validateField(e);
@@ -320,28 +335,32 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               autoComplete="off"
               className="control"
               id="email"
-              defaultValue={user.Email}
+              value={user.Email}
               label="Email"
-              variant="standard"
+              variant="outlined"
             />
 
             <Autocomplete
               disablePortal
               id="organisation"
-              defaultValue={{
+              ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
+              value={{
                 content: user.OrganisationLookupId,
                 header: user.Organisation,
                 unspecified: false,
               }}
               options={organisations}
               getOptionLabel={(option) =>
-                Object.prototype.hasOwnProperty.call(option, 'header') ? option.header : option
+                Object.prototype.hasOwnProperty.call(option, 'header') &&
+                option.header !== undefined
+                  ? option.header
+                  : ''
               }
               isOptionEqualToValue={(option, value) => option.content === value.content}
               onChange={(e, value) => {
                 user.OrganisationLookupId = value ? value.content : undefined;
                 user.Organisation = value ? value.header : undefined;
-                setUnspecifiedOrg(value.unspecified);
+                setUnspecifiedOrg(value?.unspecified);
                 if (!unspecifiedOrg) {
                   user.SuggestedOrganisation = null;
                 }
@@ -353,7 +372,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                   required
                   {...params}
                   label="Organisation"
-                  variant="standard"
+                  variant="outlined"
                   error={Boolean(errors?.organisation)}
                   helperText={errors?.organisation}
                   onBlur={validateField}
@@ -364,13 +383,14 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
           <div className="row">
             {userInfo.isNFP && (
               <Autocomplete
+                ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
                 required
                 multiple
                 limitTags={1}
                 id="membership"
-                defaultValue={user.Membership}
+                value={user.Membership}
                 options={memberships}
-                getOptionLabel={(option) => option}
+                getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
                   user.Membership = value;
                 }}
@@ -380,8 +400,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                     {...params}
                     required
                     autoComplete="off"
-                    variant="standard"
-                    label="Eionet groups"
+                    variant="outlined"
+                    label="Membership of Eionet groups"
                     error={Boolean(errors?.membership)}
                     helperText={errors?.membership}
                     onBlur={validateField}
@@ -391,11 +411,12 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
             )}
             {userInfo.isAdmin && (
               <Autocomplete
+                ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
                 required
                 multiple
                 limitTags={1}
                 id="membership"
-                defaultValue={user.Membership}
+                value={user.Membership}
                 options={memberships}
                 getOptionLabel={(option) => option}
                 onChange={(_e, value) => {
@@ -406,19 +427,20 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                     className="control"
                     {...params}
                     autoComplete="off"
-                    variant="standard"
-                    label="Eionet groups"
+                    variant="outlined"
+                    label="Membership of Eionet groups"
                   />
                 )}
               />
             )}
             {userInfo.isAdmin && (
               <Autocomplete
+                ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
                 required
                 multiple
                 limitTags={1}
                 id="otherMembership"
-                defaultValue={user.OtherMemberships}
+                value={user.OtherMemberships}
                 options={otherMemberships}
                 getOptionLabel={(option) => option}
                 onChange={(_e, value) => {
@@ -429,7 +451,7 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                     className="control"
                     {...params}
                     autoComplete="off"
-                    variant="standard"
+                    variant="outlined"
                     label="Other memberships"
                   />
                 )}
@@ -439,8 +461,9 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
               <Autocomplete
                 disablePortal
                 id="nfp"
-                defaultValue={user.NFP}
+                value={user.NFP}
                 options={nfps}
+                getOptionLabel={(option) => option}
                 onChange={(_e, value) => {
                   user.NFP = value;
                 }}
@@ -449,8 +472,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                     className="control"
                     autoComplete="off"
                     {...params}
-                    label="NFP"
-                    variant="standard"
+                    label="Membership of NFP group"
+                    variant="outlined"
                   />
                 )}
               />
@@ -464,11 +487,11 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 className="control"
                 id="suggestedOrganisation"
                 label="Suggest new organisation"
-                variant="standard"
+                variant="outlined"
                 multiline
                 rows={4}
                 placeholder="Please enter Name and URL of the organisation to add. We will then add the Organisation to the list and update the User information."
-                defaultValue={user.SuggestedOrganisation}
+                value={user.SuggestedOrganisation}
                 onChange={(e) => {
                   user.SuggestedOrganisation = e.target.value;
                   validateField(e);
@@ -477,6 +500,22 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
                 helperText={errors?.suggestedOrganisation}
                 onBlur={validateField}
               />
+            )}
+            {userInfo.isAdmin && (
+              <Tooltip title={configuration.EEANominatedTooltip}>
+                <FormControlLabel
+                  sx={{ marginLeft: '0.1rem' }}
+                  control={
+                    <Checkbox
+                      checked={user.EEANominated}
+                      onChange={(e) => {
+                        user.EEANominated = e.target.checked;
+                      }}
+                    ></Checkbox>
+                  }
+                  label="Nominated by EEA"
+                ></FormControlLabel>
+              </Tooltip>
             )}
           </div>
           {!newYN && !user.SignedIn && user.LastInvitationDate && (
@@ -558,8 +597,8 @@ export function UserEdit({ user, refreshRow, saveFunction, newYN, userInfo }) {
             <div className="row">
               <FormLabel className="note-label control">
                 Note: If the email or other details needs to be changed, kindly contact{' '}
-                <Link className="mail-link" href="mailto:helpdesk@eionet.europa.eu">
-                  Eionet Helpdesk
+                <Link className="mail-link" href="mailto:helpdesk@eea.europa.eu">
+                  EEA Helpdesk
                 </Link>
                 .
               </FormLabel>
