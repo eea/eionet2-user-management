@@ -9,7 +9,7 @@ import { Box, CircularProgress, FormLabel, TextField, Button } from '@mui/materi
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
-export function UserInvite({ userInfo, refreshList }) {
+export function UserInvite({ userInfo, refreshList, configuration }) {
   const [inputEmail, setInputEmail] = useState(''),
     [formVisible, setFormVisible] = useState(false),
     [emailCheckVisible, setEmailCheckVisible] = useState(true),
@@ -77,8 +77,9 @@ export function UserInvite({ userInfo, refreshList }) {
       }
       setLoading(false);
     },
-    sendInvite = async () => {
-      let result = await inviteUser(selectedUser, mapppings);
+    sendInvite = async (user) => {
+      setSelectedUser(user);
+      let result = await inviteUser(user, mapppings);
       refreshList && (await refreshList());
       return result;
     };
@@ -162,10 +163,11 @@ export function UserInvite({ userInfo, refreshList }) {
           >
             <h2>User details</h2>
             <UserEdit
-              user={selectedUser}
+              userEntity={selectedUser}
               saveFunction={sendInvite}
               newYN={true}
               userInfo={userInfo}
+              configuration={configuration}
             ></UserEdit>
           </Box>
         )}

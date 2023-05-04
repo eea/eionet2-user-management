@@ -1,5 +1,6 @@
 import { TeamsUserCredential, getResourceConfiguration, ResourceType } from '@microsoft/teamsfx';
 import * as axios from 'axios';
+import * as constants from './constants';
 
 async function callApiFunction(command, method, options, params) {
   let message = [];
@@ -23,7 +24,7 @@ async function callApiFunction(command, method, options, params) {
 
 export async function apiGet(path, credentialType = 'app') {
   try {
-    return await callApiFunction('graphData', 'get', undefined, {
+    return await callApiFunction(constants.API_FUNCTION, 'get', undefined, {
       path: path,
       credentialType: credentialType,
     });
@@ -35,7 +36,7 @@ export async function apiGet(path, credentialType = 'app') {
 
 export async function apiPost(path, data, credentialType = 'app') {
   try {
-    return await callApiFunction('graphData', 'post', {
+    return await callApiFunction(constants.API_FUNCTION, 'post', {
       credentialType: credentialType,
       data: data,
       path: path,
@@ -48,7 +49,7 @@ export async function apiPost(path, data, credentialType = 'app') {
 
 export async function apiPatch(path, data, credentialType = 'app') {
   try {
-    return await callApiFunction('graphData', 'patch', {
+    return await callApiFunction(constants.API_FUNCTION, 'patch', {
       credentialType: credentialType,
       data: data,
       path: path,
@@ -61,7 +62,7 @@ export async function apiPatch(path, data, credentialType = 'app') {
 
 export async function apiDelete(path, credentialType = 'app') {
   try {
-    return await callApiFunction('graphData', 'delete', {
+    return await callApiFunction(constants.API_FUNCTION, 'delete', {
       credentialType: credentialType,
       path: path,
     });
@@ -112,7 +113,7 @@ export async function logError(err, apiPath, data) {
 
   let fields = {
     fields: {
-      ApplicationName: 'Eionet2-User-Management',
+      ApplicationName: constants.APPLICATION_NAME,
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
       Title: err.response?.data?.error?.body.substring(0, 255),
@@ -133,7 +134,7 @@ export async function logInfo(message, apiPath, data, action) {
 
   let fields = {
     fields: {
-      ApplicationName: 'Eionet2-User-Management',
+      ApplicationName: constants.APPLICATION_NAME,
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
       Title: message,

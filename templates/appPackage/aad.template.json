@@ -41,6 +41,10 @@
                     "type": "Role"
                 },
                 {
+                    "id": "Reports.Read.All",
+                    "type": "Role"
+                },
+                {
                     "id": "User.Read",
                     "type": "Scope"
                 }

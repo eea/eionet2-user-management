@@ -5,6 +5,7 @@ import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import { useMediaQuery } from 'react-responsive';
 import './UserList.scss';
+import { ReactComponent as EeaLogo } from './eea_logo.svg';
 import {
   TextField,
   Button,
@@ -17,6 +18,7 @@ import {
   Box,
   Alert,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
@@ -53,42 +55,48 @@ export function UserList({ userInfo }) {
     [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const renderButtons = (params) => {
-      const showRemoveMemberships =
+      const user = params.row;
+      const showEdit = user && (!userInfo.isNFP || (userInfo.isNFP && !user.EEANominated)),
+        showRemoveMemberships =
+          user &&
           userInfo.isNFP &&
-          (params.row?.OtherMemberships?.length > 0 || params.row?.NFP) &&
-          params.row?.Membership?.length > 0,
+          !user.EEANominated &&
+          (user.OtherMemberships?.length > 0 || user.NFP) &&
+          user.Membership?.length > 0,
         showRemoveUser =
-          (userInfo.isNFP && !params.row?.OtherMemberships?.length && !params.row?.NFP) ||
-          userInfo.isAdmin;
+          user &&
+          ((userInfo.isNFP && !user.OtherMemberships?.length && !user.NFP && !user.EEANominated) ||
+            userInfo.isAdmin);
       return (
         <div className="row">
           <strong>
-            <Tooltip title="Edit">
-              <IconButton
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={async () => {
-                  setFormVisible(false);
-                  const user = params.row;
-                  let missingUser = user.ADUserId === undefined;
-                  if (user.ADUserId) {
-                    const userDetails = await getUser(user.ADUserId);
-                    missingUser = userDetails === undefined;
-                    if (userDetails) {
-                      user.FirstName = userDetails.givenName;
-                      user.LastName = userDetails.surname;
-                      setSelectedUser(user);
-                      setFormVisible(true);
+            {showEdit && (
+              <Tooltip title="Edit">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    let missingUser = user.ADUserId === undefined;
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId);
+                      missingUser = userDetails === undefined;
+                      if (userDetails) {
+                        user.FirstName = userDetails.givenName;
+                        user.LastName = userDetails.surname;
+                        setSelectedUser(user);
+                        setFormVisible(true);
+                      }
                     }
-                  }
-                  setAlertOpen(missingUser);
-                  missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
-                }}
-              >
-                <CreateIcon />
-              </IconButton>
-            </Tooltip>
+                    setAlertOpen(missingUser);
+                    missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
+                  }}
+                >
+                  <CreateIcon />
+                </IconButton>
+              </Tooltip>
+            )}
             {showRemoveUser && (
               <Tooltip title="Remove">
                 <IconButton
@@ -97,7 +105,6 @@ export function UserList({ userInfo }) {
                   size="small"
                   onClick={async () => {
                     setFormVisible(false);
-                    const user = params.row;
                     if (user.ADUserId) {
                       const userDetails = await getUser(user.ADUserId),
                         groupsString = await getUserGroups(user.ADUserId);
@@ -123,7 +130,6 @@ export function UserList({ userInfo }) {
                   size="small"
                   onClick={async () => {
                     setFormVisible(false);
-                    const user = params.row;
                     if (user.ADUserId) {
                       const userDetails = await getUser(user.ADUserId),
                         groupsString = await getUserGroups(user.ADUserId);
@@ -181,6 +187,23 @@ export function UserList({ userInfo }) {
     handleSearchClose = () => {
       setSearchOpen(false);
     },
+    renderTitle = (params) => {
+      const user = params.row,
+        value = user.EEANominated || false;
+
+      return (
+        <div>
+          <Typography className="grid-text" variant="body1" component={'span'}>
+            {params.row.Title}
+          </Typography>
+          {value && (
+            <IconButton sx={{ width: '36px', height: '36px' }}>
+              <EeaLogo></EeaLogo>
+            </IconButton>
+          )}
+        </div>
+      );
+    },
     renderMembershipTags = (params) => {
       let index = 0,
         allMemberships = [];
@@ -208,14 +231,11 @@ export function UserList({ userInfo }) {
         <WarningIcon sx={{ color: '#eed202' }}></WarningIcon>
       );
     },
-    refreshRow = async (user) => {
-      let existingRecord = filteredUsers.find((u) => {
-        return u.id == user.id;
+    refreshRow = (user) => {
+      const result = filteredUsers.map((u) => {
+        return u.id != user.id ? u : JSON.parse(JSON.stringify(user));
       });
-
-      if (existingRecord) {
-        Object.assign(existingRecord, user);
-      }
+      setFilteredUsers(result);
     },
     refreshList = async () => {
       let invitedUsers = await getInvitedUsers(userInfo);
@@ -264,9 +284,13 @@ export function UserList({ userInfo }) {
             users.filter((u) => {
               return (
                 u.Email.toLowerCase().includes(value.toLowerCase()) ||
+                u.Country.toLowerCase().includes(value.toLowerCase()) ||
+                u.Organisation.toLowerCase().includes(value.toLowerCase()) ||
                 (u.Title && u.Title.toLowerCase().includes(value.toLowerCase())) ||
                 (u.Membership &&
-                  u.Membership.some((m) => m.toLowerCase().includes(value.toLowerCase())))
+                  u.Membership.some((m) => m.toLowerCase().includes(value.toLowerCase()))) ||
+                (u.OtherMemberships &&
+                  u.OtherMemberships.some((m) => m.toLowerCase().includes(value.toLowerCase())))
               );
             }),
           ),
@@ -276,7 +300,7 @@ export function UserList({ userInfo }) {
     };
 
   const columns = [
-    { field: 'Title', headerName: 'Name', flex: 0.65 },
+    { field: 'Title', headerName: 'Name', flex: 0.65, renderCell: renderTitle },
     { field: 'Email', headerName: 'Email', flex: 0.65 },
     {
       field: 'MembershipString',
@@ -477,10 +501,11 @@ export function UserList({ userInfo }) {
           </DialogTitle>
           <div className="page-padding">
             <UserEdit
-              user={selectedUser}
+              userEntity={selectedUser}
               refreshRow={refreshRow}
               newYN={false}
               userInfo={userInfo}
+              configuration={configuration}
             ></UserEdit>
           </div>
         </Dialog>
@@ -500,7 +525,7 @@ export function UserList({ userInfo }) {
             </IconButton>
           </DialogTitle>
           <div className="page-padding">
-            <UserInvite userInfo={userInfo} refreshList={refreshList}>
+            <UserInvite userInfo={userInfo} refreshList={refreshList} configuration={configuration}>
               {' '}
             </UserInvite>
           </div>
