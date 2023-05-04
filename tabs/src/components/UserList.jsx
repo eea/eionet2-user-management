@@ -197,9 +197,11 @@ export function UserList({ userInfo }) {
             {params.row.Title}
           </Typography>
           {value && (
-            <IconButton sx={{ width: '36px', height: '36px' }}>
-              <EeaLogo></EeaLogo>
-            </IconButton>
+            <Tooltip title={configuration.EEANominatedTooltip}>
+              <IconButton sx={{ width: '36px', height: '36px' }}>
+                <EeaLogo></EeaLogo>
+              </IconButton>
+            </Tooltip>
           )}
         </div>
       );
