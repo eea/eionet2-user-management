@@ -31,7 +31,8 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
     [success, setSuccess] = useState(false),
     [resendSuccess, setResendSuccess] = useState(false),
     [oldValues, setOldValues] = useState(JSON.parse(JSON.stringify(user))),
-    [warningText, setWarningText] = useState('');
+    [warningText, setWarningText] = useState(''),
+    [eeaNominated, setEeaNominated] = useState(userEntity.EEANominated);
 
   const [errors, setErrors] = useState({});
 
@@ -162,6 +163,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
     },
     validateForm = () => {
       let tempErrors = { ...errors };
+      tempErrors.gender = validateMandatoryField(user.Gender);
       tempErrors.firstName = validateName(user.FirstName);
       tempErrors.lastName = validateName(user.LastName);
       tempErrors.phone = validatePhone(user.Phone);
@@ -388,7 +390,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 multiple
                 limitTags={1}
                 id="membership"
-                value={user.Membership}
+                defaultValue={user.Membership}
                 options={memberships}
                 getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
@@ -416,9 +418,9 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 multiple
                 limitTags={1}
                 id="membership"
-                value={user.Membership}
+                defaultValue={user.Membership}
                 options={memberships}
-                getOptionLabel={(option) => option}
+                getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
                   user.Membership = value;
                 }}
@@ -440,9 +442,9 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 multiple
                 limitTags={1}
                 id="otherMembership"
-                value={user.OtherMemberships}
+                defaultValue={user.OtherMemberships}
                 options={otherMemberships}
-                getOptionLabel={(option) => option}
+                getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
                   user.OtherMemberships = value;
                 }}
@@ -461,7 +463,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               <Autocomplete
                 disablePortal
                 id="nfp"
-                value={user.NFP}
+                defaultValue={user.NFP}
                 options={nfps}
                 getOptionLabel={(option) => option}
                 onChange={(_e, value) => {
@@ -507,10 +509,13 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   sx={{ marginLeft: '0.1rem' }}
                   control={
                     <Checkbox
-                      checked={user.EEANominated}
+                      checked={eeaNominated}
                       onChange={(e) => {
-                        user.EEANominated = e.target.checked;
+                        const value = e.target.checked;
+                        setEeaNominated(value);
+                        user.EEANominated = value;
                       }}
+                      inputProps={{ 'aria-label': 'controlled' }}
                     ></Checkbox>
                   }
                   label="Nominated by EEA"

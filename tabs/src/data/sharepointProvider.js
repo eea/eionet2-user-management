@@ -170,7 +170,7 @@ export async function getInvitedUsers(userInfo) {
           LastInvitationDate: user.fields.LastInvitationDate
             ? user.fields.LastInvitationDate
             : user.createdDateTime,
-          EEANominated: user.fields.EEANominated,
+          EEANominated: user.fields.EEANominated || false,
           id: user.fields.id,
         });
       });
