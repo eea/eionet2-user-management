@@ -225,7 +225,6 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
         >
           <div className="row">
             <Autocomplete
-              disablePortal
               id="gender"
               className="small-width"
               value={user.Gender}
@@ -287,7 +286,6 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
             />
             <Autocomplete
               ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
-              disablePortal
               disabled={userInfo.isNFP || userInfo.isGuest}
               id="country"
               value={user.Country}
@@ -343,7 +341,6 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
             />
 
             <Autocomplete
-              disablePortal
               id="organisation"
               ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
               value={{
@@ -461,7 +458,6 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
             )}
             {userInfo.isAdmin && (
               <Autocomplete
-                disablePortal
                 id="nfp"
                 defaultValue={user.NFP}
                 options={nfps}
