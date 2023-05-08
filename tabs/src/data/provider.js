@@ -180,6 +180,7 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
       ADUserId: userId,
       NFP: userData.NFP,
       SuggestedOrganisation: userData.SuggestedOrganisation,
+      EEANominated: userData.EEANominated,
       ...(isMfaRegistered && { SignedIn: true }),
       ...(isMfaRegistered && { SignedInDate: new Date() }),
     },
