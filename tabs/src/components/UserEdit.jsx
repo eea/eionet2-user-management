@@ -44,7 +44,10 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
     [nfps, setNfps] = useState([]),
     [mappings, setMappings] = useState([]);
 
-  const [unspecifiedOrg, setUnspecifiedOrg] = useState(false);
+  const [unspecifiedOrg, setUnspecifiedOrg] = useState(false),
+    [showEEANominted, setShowEEANominted] = useState(
+      userInfo.isAdmin && userEntity.Membership?.length > 0,
+    );
 
   const submit = async (e) => {
       const buttonId = e.nativeEvent.submitter.id;
@@ -420,6 +423,10 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
                   user.Membership = value;
+                  const eeaNominatedVisible = userInfo.isAdmin && value && value.length > 0;
+                  setShowEEANominted(eeaNominatedVisible);
+                  !eeaNominatedVisible && (user.EEANominated = false);
+                  setEeaNominated(user.EEANominated);
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -499,7 +506,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 onBlur={validateField}
               />
             )}
-            {userInfo.isAdmin && (
+            {showEEANominted && (
               <Tooltip title={configuration.EEANominatedTooltip}>
                 <FormControlLabel
                   sx={{ marginLeft: '0.1rem' }}
