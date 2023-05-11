@@ -156,7 +156,10 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
     userData.LastInvitationDate = new Date();
     const mfaResponse = await checkMFAStatus(buildUserDisplaName(userData));
     isMfaRegistered =
-      mfaResponse.value && mfaResponse.value.length > 0 && mfaResponse.value[0].isMfaRegistered;
+      mfaResponse &&
+      mfaResponse.value &&
+      mfaResponse.value.length > 0 &&
+      mfaResponse.value[0].isMfaRegistered;
   }
   userData.Title = userData.FirstName + ' ' + userData.LastName;
   let fields = {
@@ -242,14 +245,21 @@ async function sendInvitationMail(user) {
 }
 
 async function getExistingGroups(userId, groupIds) {
-  if (groupIds && groupIds.length > 0) {
-    const result = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
-      groupIds: groupIds,
+  let result = [];
+
+  let localGroupsIds = [...groupIds];
+
+  //directoryObjects endpoint allows max 20 groups ids per request.
+  //see: https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0&tabs=http#request-body
+  while (localGroupsIds && localGroupsIds.length > 0) {
+    const response = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
+      groupIds: localGroupsIds.splice(0, 20),
     });
 
-    return result?.graphClientMessage?.value;
+    response?.graphClientMessage?.value &&
+      (result = result.concat(response?.graphClientMessage?.value));
   }
-  return [];
+  return result;
 }
 
 export async function inviteUser(user, mappings) {
