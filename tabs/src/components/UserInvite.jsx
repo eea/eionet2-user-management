@@ -1,11 +1,12 @@
 import { React, useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { getUserByMail, inviteUser } from '../data/provider';
 import { getMappingsList } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
 import validator from 'validator';
 import './UserInvite.scss';
 import { UserEdit } from './UserEdit';
-import { Box, CircularProgress, FormLabel, TextField, Button } from '@mui/material';
+import { Box, CircularProgress, Alert, TextField, Button } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 
@@ -64,7 +65,7 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
           setWarningVisible(true);
         } else {
           const response = await getUserByMail(inputEmail);
-          setWarningText(messages.UserInvite.UserAlreadyRegistered);
+          setWarningText(configuration.UserAlreadyRegisteredMessage);
           setWarningVisible(!response.Continue);
           selectedUser.Email = inputEmail;
           selectedUser.ADProfile = response.ADUser;
@@ -142,13 +143,19 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
                     />
                   )}
                 </Box>
-
-                {warningVisible && (
-                  <FormLabel className="note-label warning" error>
-                    {warningText}
-                  </FormLabel>
-                )}
               </div>
+              {warningVisible && (
+                <div className="row">
+                  <Alert severity="error" className="note-label warning">
+                    <Box
+                      sx={{ width: '100%' }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(warningText),
+                      }}
+                    />
+                  </Alert>
+                </div>
+              )}
             </Box>
           )}
         </div>

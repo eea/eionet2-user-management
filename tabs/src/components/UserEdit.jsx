@@ -17,11 +17,11 @@ import {
   Checkbox,
   Tooltip,
   FormControlLabel,
+  Alert,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
-import WarningIcon from '@mui/icons-material/Warning';
 
 export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo, configuration }) {
   const user = useRef(JSON.parse(JSON.stringify(userEntity))).current;
@@ -528,12 +528,11 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
           </div>
           {!newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
-              <WarningIcon sx={{ color: '#eed202', alignSelf: 'center' }}></WarningIcon>
-              <FormLabel className="note-label" color="secondary" sx={{ fontWeight: 'bold' }}>
+              <Alert sx={{ fontWeight: 'bold' }} severity="warning" className="note-label warning">
                 User was last invited on{' '}
                 {format(new Date(user.LastInvitationDate), 'dd-MMM-yyyy HH:mm')}. The user has not
                 yet completed the signup.{' '}
-              </FormLabel>
+              </Alert>
             </div>
           )}
           <div className="row">
