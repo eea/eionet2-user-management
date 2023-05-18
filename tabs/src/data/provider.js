@@ -251,7 +251,7 @@ async function getExistingGroups(userId, groupIds) {
 
   //directoryObjects endpoint allows max 20 groups ids per request.
   //see: https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0&tabs=http#request-body
-  while (localGroupsIds && localGroupsIds.length > 0) {
+  while (localGroupsIds.length > 0) {
     const response = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
       groupIds: localGroupsIds.splice(0, 20),
     });
