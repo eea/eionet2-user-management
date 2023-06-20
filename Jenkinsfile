@@ -39,7 +39,8 @@ pipeline {
                          checkout scm                         
                          tool 'NodeJS'
                          tool 'SonarQubeScanner'
-                         sh "cd tabs; yarn install"  
+                         sh "git status"
+                         sh "cd tabs; yarn cache clean; yarn install"  
                        }
                    }
                }
