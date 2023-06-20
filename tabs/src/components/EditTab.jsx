@@ -1,5 +1,6 @@
 import { React, useState, useEffect } from 'react';
 import { getMe } from '../data/provider';
+import { getCountryCodeMappingsList } from '../data/tagProvider';
 import { UserList } from './UserList';
 import { Backdrop, CircularProgress, Typography } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -42,12 +43,12 @@ const showFunction = Boolean(process.env.REACT_APP_FUNC_NAME);
 
 export default function EditTab() {
   const [userInfo, setUserInfo] = useState({
-      isAdmin: false,
-      isNFP: false,
-      isGuest: true,
-      country: '',
-      isLoaded: false,
-    }),
+    isAdmin: false,
+    isNFP: false,
+    isGuest: true,
+    country: '',
+    isLoaded: false,
+  }),
     [loading, setloading] = useState(false);
   useEffect(() => {
     (async () => {
@@ -60,6 +61,7 @@ export default function EditTab() {
         country: me.country,
         isLoaded: true,
       });
+      await getCountryCodeMappingsList();
       setloading(false);
     })();
   }, []);

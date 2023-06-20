@@ -6,7 +6,7 @@ import {
   capitalizeName,
   buildUserDisplaName,
 } from './providerHelper';
-import { addTag, removeTag } from './tagProvider';
+import { addTag, removeTag, getCountryName } from './tagProvider';
 import messages from './messages.json';
 import * as constants from './constants';
 
@@ -333,8 +333,9 @@ export async function inviteUser(user, mappings) {
           }
 
           try {
-            await addTag(config.MainEionetGroupId, 'NFP', userId);
-            onlyNFP && (await addTag(config.MainEionetGroupId, user.Country, userId));
+            await addTag(config.MainEionetGroupId, constants.NFP_TAG, userId);
+            onlyNFP &&
+              (await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId));
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
           }
@@ -369,7 +370,7 @@ export async function inviteUser(user, mappings) {
               if (mapping.Tag) {
                 //TeamId is the same as O365GroupId
                 await addTag(mapping.O365GroupId, mapping.Tag, userId);
-                await addTag(mapping.O365GroupId, user.Country, userId);
+                await addTag(mapping.O365GroupId, getCountryName(user.Country), userId);
               }
             } catch (err) {
               return wrapError(err, messages.UserInvite.Errors.TagsCreation);
@@ -426,7 +427,7 @@ export async function editUser(user, mappings, oldValues) {
       await postUserGroup(groupId, user.ADUserId);
 
       const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
-      groupMapping[0]?.Tag && addTag(groupId, user.Country, user.ADUserId);
+      groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), user.ADUserId);
     }
 
     newTags.forEach((m) => {
@@ -462,9 +463,9 @@ export async function editUser(user, mappings, oldValues) {
     if (oldValues.Country !== user.Country) {
       newMappings.forEach((m) => {
         if (m.Tag) {
-          addTag(m.O365GroupId, user.Country, user.ADUserId);
+          addTag(m.O365GroupId, getCountryName(user.Country), user.ADUserId);
         }
-        removeTag(m.O365GroupId, oldValues.Country, user.ADUserId);
+        removeTag(m.O365GroupId, getCountryName(oldValues.Country), user.ADUserId);
       });
     }
 
@@ -476,7 +477,7 @@ export async function editUser(user, mappings, oldValues) {
       }
 
       try {
-        await addTag(config.MainEionetGroupId, 'NFP', user.ADUserId);
+        await addTag(config.MainEionetGroupId, constants.NFP_TAG, user.ADUserId);
       } catch (err) {
         return wrapError(err, messages.UserInvite.Errors.TagsCreation);
       }
