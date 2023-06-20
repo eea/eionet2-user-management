@@ -17,11 +17,11 @@ import {
   Checkbox,
   Tooltip,
   FormControlLabel,
+  Alert,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
-import WarningIcon from '@mui/icons-material/Warning';
 
 export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo, configuration }) {
   const user = useRef(JSON.parse(JSON.stringify(userEntity))).current;
@@ -44,7 +44,10 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
     [nfps, setNfps] = useState([]),
     [mappings, setMappings] = useState([]);
 
-  const [unspecifiedOrg, setUnspecifiedOrg] = useState(false);
+  const [unspecifiedOrg, setUnspecifiedOrg] = useState(false),
+    [showEEANominted, setShowEEANominted] = useState(
+      userInfo.isAdmin && userEntity.Membership?.length > 0,
+    );
 
   const submit = async (e) => {
       const buttonId = e.nativeEvent.submitter.id;
@@ -420,6 +423,10 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 getOptionLabel={(option) => (option ? option : '')}
                 onChange={(_e, value) => {
                   user.Membership = value;
+                  const eeaNominatedVisible = userInfo.isAdmin && value && value.length > 0;
+                  setShowEEANominted(eeaNominatedVisible);
+                  !eeaNominatedVisible && (user.EEANominated = false);
+                  setEeaNominated(user.EEANominated);
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -499,7 +506,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 onBlur={validateField}
               />
             )}
-            {userInfo.isAdmin && (
+            {showEEANominted && (
               <Tooltip title={configuration.EEANominatedTooltip}>
                 <FormControlLabel
                   sx={{ marginLeft: '0.1rem' }}
@@ -521,12 +528,11 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
           </div>
           {!newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
-              <WarningIcon sx={{ color: '#eed202', alignSelf: 'center' }}></WarningIcon>
-              <FormLabel className="note-label" color="secondary" sx={{ fontWeight: 'bold' }}>
+              <Alert sx={{ fontWeight: 'bold' }} severity="warning" className="note-label warning">
                 User was last invited on{' '}
                 {format(new Date(user.LastInvitationDate), 'dd-MMM-yyyy HH:mm')}. The user has not
                 yet completed the signup.{' '}
-              </FormLabel>
+              </Alert>
             </div>
           )}
           <div className="row">

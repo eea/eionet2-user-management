@@ -228,9 +228,13 @@ export function UserList({ userInfo }) {
       let value = params.row.SignedIn || false;
 
       return value ? (
-        <CheckCircleOutlineIcon sx={{ color: 'green' }}></CheckCircleOutlineIcon>
+        <Tooltip title={configuration.SignedInTooltip}>
+          <CheckCircleOutlineIcon sx={{ color: 'green' }}></CheckCircleOutlineIcon>
+        </Tooltip>
       ) : (
-        <WarningIcon sx={{ color: '#eed202' }}></WarningIcon>
+        <Tooltip title={configuration.NotSignedInTooltip}>
+          <WarningIcon sx={{ color: '#eed202' }}></WarningIcon>
+        </Tooltip>
       );
     },
     refreshRow = (user) => {

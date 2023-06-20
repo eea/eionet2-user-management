@@ -21,15 +21,15 @@
         "identityClientId": "f12b0d00-5194-4022-b479-1972248d546a"
     },
     "fx-resource-aad-app-for-teams": {
-        "clientId": "9cf6d36e-021c-495d-99a5-e3a154a06f78",
+        "clientId": "cf21805a-3089-48a2-a309-9d83a3e746ca",
         "clientSecret": "{{fx-resource-aad-app-for-teams.clientSecret}}",
-        "objectId": "931041e3-d76b-42ba-9f66-1122a07df087",
         "oauth2PermissionScopeId": "5c6699a8-96e4-4e8e-9013-85aefadc3818",
         "tenantId": "3433ca34-11c7-462b-96a9-fd70adcc5bb0",
         "oauthHost": "https://login.microsoftonline.com",
         "oauthAuthority": "https://login.microsoftonline.com/3433ca34-11c7-462b-96a9-fd70adcc5bb0",
-        "applicationIdUris": "api://eionettestdev709099tab.z6.web.core.windows.net/9cf6d36e-021c-495d-99a5-e3a154a06f78",
-        "frontendEndpoint": "https://eionettestdev709099tab.z6.web.core.windows.net"
+        "applicationIdUris": "api://eionettestdev709099tab.z6.web.core.windows.net/cf21805a-3089-48a2-a309-9d83a3e746ca",
+        "frontendEndpoint": "https://eionettestdev709099tab.z6.web.core.windows.net",
+        "objectId": "7c01f39a-012a-4c7d-b8cb-4e5c8adeaafe"
     },
     "fx-resource-function": {
         "functionAppResourceId": "/subscriptions/83d442da-e921-445b-aa62-df8d53543040/resourceGroups/ResourceGroup/providers/Microsoft.Web/sites/eionettestdev709099api",

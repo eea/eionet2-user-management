@@ -1,5 +1,6 @@
 import { React, useState, useEffect } from 'react';
 import { getMe } from '../data/provider';
+import { getCountryCodeMappingsList } from '../data/tagProvider';
 import { UserList } from './UserList';
 import { Backdrop, CircularProgress, Typography } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -60,6 +61,7 @@ export default function EditTab() {
         country: me.country,
         isLoaded: true,
       });
+      await getCountryCodeMappingsList();
       setloading(false);
     })();
   }, []);

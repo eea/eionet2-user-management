@@ -70,7 +70,7 @@ code {
   display: flex;
   flex-direction: row;
 
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get($breakpoints, lg)) {
     flex-direction: column;
   }
 }
@@ -78,13 +78,13 @@ code {
 .control {
   margin: 0.35rem;
 
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get($breakpoints, lg)) {
     width: 100% !important;
   }
 }
 
 .edit-user {
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get($breakpoints, lg)) {
     width: 95%;
   }
 }
@@ -107,13 +107,13 @@ code {
 .small-width {
   width: 25% !important;
 
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get($breakpoints, lg)) {
     width: 100% !important;
   }
 
   min-width: 150px !important;
 
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get($breakpoints, lg)) {
     min-width: 0px !important;
   }
 }

@@ -6,7 +6,7 @@ import {
   capitalizeName,
   buildUserDisplaName,
 } from './providerHelper';
-import { addTag, removeTag } from './tagProvider';
+import { addTag, removeTag, getCountryName } from './tagProvider';
 import messages from './messages.json';
 import * as constants from './constants';
 
@@ -156,7 +156,10 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
     userData.LastInvitationDate = new Date();
     const mfaResponse = await checkMFAStatus(buildUserDisplaName(userData));
     isMfaRegistered =
-      mfaResponse.value && mfaResponse.value.length > 0 && mfaResponse.value[0].isMfaRegistered;
+      mfaResponse &&
+      mfaResponse.value &&
+      mfaResponse.value.length > 0 &&
+      mfaResponse.value[0].isMfaRegistered;
   }
   userData.Title = userData.FirstName + ' ' + userData.LastName;
   let fields = {
@@ -242,14 +245,21 @@ async function sendInvitationMail(user) {
 }
 
 async function getExistingGroups(userId, groupIds) {
-  if (groupIds && groupIds.length > 0) {
-    const result = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
-      groupIds: groupIds,
+  let result = [];
+
+  let localGroupsIds = [...groupIds];
+
+  //directoryObjects endpoint allows max 20 groups ids per request.
+  //see: https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0&tabs=http#request-body
+  while (localGroupsIds.length > 0) {
+    const response = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
+      groupIds: localGroupsIds.splice(0, 20),
     });
 
-    return result?.graphClientMessage?.value;
+    response?.graphClientMessage?.value &&
+      (result = result.concat(response?.graphClientMessage?.value));
   }
-  return [];
+  return result;
 }
 
 export async function inviteUser(user, mappings) {
@@ -323,8 +333,9 @@ export async function inviteUser(user, mappings) {
           }
 
           try {
-            await addTag(config.MainEionetGroupId, 'NFP', userId);
-            onlyNFP && (await addTag(config.MainEionetGroupId, user.Country, userId));
+            await addTag(config.MainEionetGroupId, constants.NFP_TAG, userId);
+            onlyNFP &&
+              (await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId));
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
           }
@@ -359,7 +370,7 @@ export async function inviteUser(user, mappings) {
               if (mapping.Tag) {
                 //TeamId is the same as O365GroupId
                 await addTag(mapping.O365GroupId, mapping.Tag, userId);
-                await addTag(mapping.O365GroupId, user.Country, userId);
+                await addTag(mapping.O365GroupId, getCountryName(user.Country), userId);
               }
             } catch (err) {
               return wrapError(err, messages.UserInvite.Errors.TagsCreation);
@@ -416,7 +427,7 @@ export async function editUser(user, mappings, oldValues) {
       await postUserGroup(groupId, user.ADUserId);
 
       const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
-      groupMapping[0]?.Tag && addTag(groupId, user.Country, user.ADUserId);
+      groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), user.ADUserId);
     }
 
     newTags.forEach((m) => {
@@ -452,9 +463,9 @@ export async function editUser(user, mappings, oldValues) {
     if (oldValues.Country !== user.Country) {
       newMappings.forEach((m) => {
         if (m.Tag) {
-          addTag(m.O365GroupId, user.Country, user.ADUserId);
+          addTag(m.O365GroupId, getCountryName(user.Country), user.ADUserId);
         }
-        removeTag(m.O365GroupId, oldValues.Country, user.ADUserId);
+        removeTag(m.O365GroupId, getCountryName(oldValues.Country), user.ADUserId);
       });
     }
 
@@ -466,7 +477,7 @@ export async function editUser(user, mappings, oldValues) {
       }
 
       try {
-        await addTag(config.MainEionetGroupId, 'NFP', user.ADUserId);
+        await addTag(config.MainEionetGroupId, constants.NFP_TAG, user.ADUserId);
       } catch (err) {
         return wrapError(err, messages.UserInvite.Errors.TagsCreation);
       }
