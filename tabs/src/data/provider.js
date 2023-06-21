@@ -25,6 +25,23 @@ async function postUserGroup(groupId, userId) {
     }));
 }
 
+async function deleteUserGroup(groupId, userId) {
+  try {
+    await apiDelete('/groups/' + groupId + '/members/' + userId + '/$ref');
+  } catch (err) {
+    logInfo(
+      'Group removal returned error. ',
+      '',
+      {
+        userId: userId,
+        groupId: groupId,
+        error: err,
+      },
+      'Remove group',
+    );
+  }
+}
+
 let _profile = undefined;
 export async function getMe() {
   if (!_profile) {
@@ -444,19 +461,7 @@ export async function editUser(user, mappings, oldValues) {
 
     for (const groupId of oldGroups) {
       if (!newGroups.includes(groupId) && !(user.NFP && groupId === config.MainEionetGroupId)) {
-        try {
-          await apiDelete('/groups/' + groupId + '/members/' + user.ADUserId + '/$ref');
-        } catch (err) {
-          logInfo(
-            'Group removal returned error. ',
-            '',
-            {
-              userId: user.ADUserId,
-              groupId: groupId,
-            },
-            'Remove group',
-          );
-        }
+        await deleteUserGroup(groupId, user.ADUserId);
       }
     }
 
@@ -482,11 +487,9 @@ export async function editUser(user, mappings, oldValues) {
         return wrapError(err, messages.UserInvite.Errors.TagsCreation);
       }
     } else if (!user.NFP && oldValues.NFP) {
-      await apiDelete('/groups/' + config.NFPGroupId + '/members/' + user.ADUserId + '/$ref');
+      await deleteUserGroup(config.NFPGroupId, user.ADUserId);
       if (!newGroups.includes(config.MainEionetGroupId)) {
-        await apiDelete(
-          '/groups/' + config.MainEionetGroupId + '/members/' + user.ADUserId + '/$ref',
-        );
+        await deleteUserGroup(config.MainEionetGroupId, user.ADUserId);
       }
     }
 
@@ -539,23 +542,11 @@ export async function removeUser(user) {
           groups = getDistinctGroupsIds(filteredMappings);
 
         for (const groupId of groups) {
-          try {
-            await apiDelete('/groups/' + groupId + '/members/' + user.ADUserId + '/$ref');
-          } catch {
-            logInfo(
-              'Group removal return error. ',
-              '',
-              {
-                userId: user.ADUserId,
-                groupId: groupId,
-              },
-              'Remove user',
-            );
-          }
+          await deleteUserGroup(groupId, user.ADUserId);
         }
 
         if (user.NFP) {
-          await apiDelete('/groups/' + config.NFPGroupId + '/members/' + user.ADUserId + '/$ref');
+          await deleteUserGroup(config.NFPGroupId, user.ADUserId);
         }
       } catch (err) {
         return wrapError(err, messages.UserDelete.Errors.Groups);
