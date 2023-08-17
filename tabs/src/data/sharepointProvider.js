@@ -8,7 +8,7 @@ export async function getOrganisationList(country) {
       config.SharepointSiteId +
       '/lists/' +
       config.OrganisationListId +
-      '/items?$expand=fields';
+      '/items?$expand=fields&$top=999';
     if (country) {
       path += "&$filter=fields/Country eq '" + country + "' or fields/Unspecified eq 1";
     }
