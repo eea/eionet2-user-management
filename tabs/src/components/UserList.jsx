@@ -39,7 +39,6 @@ import DeleteDialog from './DeleteDialog';
 import ResizableGrid from './ResizableGrid';
 import { HtmlBox } from './HtmlBox';
 
-
 export function UserList({ userInfo }) {
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
   const [users, setUsers] = useState([]),
@@ -60,101 +59,101 @@ export function UserList({ userInfo }) {
     [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const renderButtons = (params) => {
-    const user = params.row;
-    const showEdit = user && (!userInfo.isNFP || (userInfo.isNFP && !user.EEANominated)),
-      showRemoveMemberships =
-        user &&
-        userInfo.isNFP &&
-        !user.EEANominated &&
-        (user.OtherMemberships?.length > 0 || user.NFP) &&
-        user.Membership?.length > 0,
-      showRemoveUser =
-        user &&
-        ((userInfo.isNFP && !user.OtherMemberships?.length && !user.NFP && !user.EEANominated) ||
-          userInfo.isAdmin);
-    return (
-      <div className="row">
-        <strong>
-          {showEdit && (
-            <Tooltip title="Edit">
-              <IconButton
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={async () => {
-                  setFormVisible(false);
-                  let missingUser = user.ADUserId === undefined;
-                  if (user.ADUserId) {
-                    const userDetails = await getUser(user.ADUserId);
-                    missingUser = userDetails === undefined;
-                    if (userDetails) {
+      const user = params.row;
+      const showEdit = user && (!userInfo.isNFP || (userInfo.isNFP && !user.EEANominated)),
+        showRemoveMemberships =
+          user &&
+          userInfo.isNFP &&
+          !user.EEANominated &&
+          (user.OtherMemberships?.length > 0 || user.NFP) &&
+          user.Membership?.length > 0,
+        showRemoveUser =
+          user &&
+          ((userInfo.isNFP && !user.OtherMemberships?.length && !user.NFP && !user.EEANominated) ||
+            userInfo.isAdmin);
+      return (
+        <div className="row">
+          <strong>
+            {showEdit && (
+              <Tooltip title="Edit">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    let missingUser = user.ADUserId === undefined;
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId);
+                      missingUser = userDetails === undefined;
+                      if (userDetails) {
+                        user.FirstName = userDetails.givenName;
+                        user.LastName = userDetails.surname;
+                        setSelectedUser(user);
+                        setFormVisible(true);
+                      }
+                    }
+                    setAlertOpen(missingUser);
+                    missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
+                  }}
+                >
+                  <CreateIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {showRemoveUser && (
+              <Tooltip title="Remove">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId),
+                        groupsString = await getUserGroups(user.ADUserId);
+
                       user.FirstName = userDetails.givenName;
                       user.LastName = userDetails.surname;
-                      setSelectedUser(user);
-                      setFormVisible(true);
+                      user.groupsString = groupsString;
                     }
-                  }
-                  setAlertOpen(missingUser);
-                  missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
-                }}
-              >
-                <CreateIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          {showRemoveUser && (
-            <Tooltip title="Remove">
-              <IconButton
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={async () => {
-                  setFormVisible(false);
-                  if (user.ADUserId) {
-                    const userDetails = await getUser(user.ADUserId),
-                      groupsString = await getUserGroups(user.ADUserId);
+                    setSelectedUser(user);
+                    setDeleteAlertOpen(true);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            )}
 
-                    user.FirstName = userDetails.givenName;
-                    user.LastName = userDetails.surname;
-                    user.groupsString = groupsString;
-                  }
-                  setSelectedUser(user);
-                  setDeleteAlertOpen(true);
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+            {showRemoveMemberships && (
+              <Tooltip title="Remove Eionet memberships">
+                <IconButton
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={async () => {
+                    setFormVisible(false);
+                    if (user.ADUserId) {
+                      const userDetails = await getUser(user.ADUserId),
+                        groupsString = await getUserGroups(user.ADUserId);
 
-          {showRemoveMemberships && (
-            <Tooltip title="Remove Eionet memberships">
-              <IconButton
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={async () => {
-                  setFormVisible(false);
-                  if (user.ADUserId) {
-                    const userDetails = await getUser(user.ADUserId),
-                      groupsString = await getUserGroups(user.ADUserId);
-
-                    user.FirstName = userDetails.givenName;
-                    user.LastName = userDetails.surname;
-                    user.groupsString = groupsString;
-                  }
-                  setSelectedUser(user);
-                  setDeleteMembershipAlertOpen(true);
-                }}
-              >
-                <PersonRemove />
-              </IconButton>
-            </Tooltip>
-          )}
-        </strong>
-      </div>
-    );
-  },
+                      user.FirstName = userDetails.givenName;
+                      user.LastName = userDetails.surname;
+                      user.groupsString = groupsString;
+                    }
+                    setSelectedUser(user);
+                    setDeleteMembershipAlertOpen(true);
+                  }}
+                >
+                  <PersonRemove />
+                </IconButton>
+              </Tooltip>
+            )}
+          </strong>
+        </div>
+      );
+    },
     handleAlertClose = (_event, reason) => {
       if (reason === 'clickaway') {
         return;
