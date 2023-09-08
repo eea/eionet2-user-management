@@ -1,5 +1,4 @@
 import { React, useState, useEffect } from 'react';
-import DOMPurify from 'dompurify';
 import { getUserByMail, inviteUser } from '../data/provider';
 import { getMappingsList } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
@@ -9,6 +8,7 @@ import { UserEdit } from './UserEdit';
 import { Box, CircularProgress, Alert, TextField, Button } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import { HtmlBox } from './HtmlBox';
 
 export function UserInvite({ userInfo, refreshList, configuration }) {
   const [inputEmail, setInputEmail] = useState(''),
@@ -49,11 +49,11 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
   }, [selectedUser, userInfo]);
 
   const onInputEmailChange = (e) => {
-      setInputEmail(e.target.value);
-      setSelectedUser(defaultUser);
-      setWarningVisible(false);
-      setFormVisible(false);
-    },
+    setInputEmail(e.target.value);
+    setSelectedUser(defaultUser);
+    setWarningVisible(false);
+    setFormVisible(false);
+  },
     onCheckEmail = async () => {
       setFormVisible(false);
       setLoading(true);
@@ -147,12 +147,7 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
               {warningVisible && (
                 <div className="row">
                   <Alert severity="error" className="note-label warning">
-                    <Box
-                      sx={{ width: '100%' }}
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(warningText),
-                      }}
-                    />
+                    <HtmlBox html={warningText}></HtmlBox>
                   </Alert>
                 </div>
               )}
