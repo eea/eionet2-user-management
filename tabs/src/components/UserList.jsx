@@ -20,6 +20,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,11 +31,13 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningIcon from '@mui/icons-material/Warning';
 import ClearIcon from '@mui/icons-material/Clear';
 import PersonRemove from '@mui/icons-material/PersonRemoveAlt1';
+
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
 import Snack from './Snack';
 import DeleteDialog from './DeleteDialog';
 import ResizableGrid from './ResizableGrid';
+import { HtmlBox } from './HtmlBox';
 
 export function UserList({ userInfo }) {
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
@@ -52,6 +55,7 @@ export function UserList({ userInfo }) {
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false),
     [deleteMembershipAlertOpen, setDeleteMembershipAlertOpen] = useState(false),
     [snackbarMessage, setSnackbarMessage] = useState(''),
+    [versionDialogOpen, setVersionDialogOpen] = useState(false),
     [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const renderButtons = (params) => {
@@ -280,6 +284,9 @@ export function UserList({ userInfo }) {
 
       setSnackbarOpen(false);
     },
+    handleVersionDialogClose = () => {
+      setVersionDialogOpen(false);
+    },
     onFilterValueChanged = (value) => {
       setFilterValue(value);
       if (!value || (value && value.length < 2)) {
@@ -334,6 +341,8 @@ export function UserList({ userInfo }) {
     },
   ];
 
+  const version = process.env.REACT_APP_VERSION;
+
   useEffect(() => {
     (async () => {
       setloading(true);
@@ -347,6 +356,8 @@ export function UserList({ userInfo }) {
         setFilteredUsers(invitedUsers);
       }
 
+      !!loadedConfiguration.UserManagementVersion &&
+        setVersionDialogOpen(loadedConfiguration.UserManagementVersion != version);
       setloading(false);
     })();
   }, []);
@@ -365,6 +376,26 @@ export function UserList({ userInfo }) {
         >
           <CircularProgress color="inherit" />
         </Backdrop>
+        <Dialog open={versionDialogOpen} onClose={handleVersionDialogClose}>
+          <DialogTitle>
+            <IconButton
+              aria-label="close"
+              onClick={handleVersionDialogClose}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography>Application version</Typography>
+          </DialogTitle>
+          <Box sx={{ margin: '2rem' }}>
+            <HtmlBox html={configuration?.AppVersionMessage}></HtmlBox>
+          </Box>
+        </Dialog>
         <Dialog open={searchOpen} onClose={handleSearchClose} maxWidth="xl">
           <Alert onClose={handleSearchClose} severity="info" sx={{ width: '100%' }}>
             {configuration.UserListSearchInfo}
