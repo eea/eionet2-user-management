@@ -26,20 +26,29 @@ export function buildUserDisplaName(userData) {
 }
 
 export function buildTeamsURLs(user, mappings, config) {
-  let teamURLs = mappings
+  let teamURLs = {};
+  mappings
     .filter(
       (m) =>
         (user.Membership && user.Membership.includes(m.Membership)) ||
         (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
     )
-    .map((mapping) => {
-      return mapping.TeamURL;
+    .forEach((mapping) => {
+      teamURLs[mapping.O365GroupId] = { url: mapping.TeamURL, name: mapping.Membership };
     });
 
-  user.NFP &&
-    teamURLs.push(mappings.find((m) => m.O365GroupId === config.MainEionetGroupId).TeamURL);
+  if (user.NFP && !teamURLs[config.MainEionetGroupId]) {
+    const mainMapping = mappings.find((m) => m.O365GroupId === config.MainEionetGroupId);
+    teamURLs[config.MainEionetGroupId] = {
+      url: mainMapping.TeamURL,
+      mainMapping: mainMapping.Membership,
+    };
+  }
 
-  let uniqueUrls = [...new Set(teamURLs)];
+  let result = '<br/>';
 
-  return uniqueUrls.join('\n');
+  for (const value of Object.values(teamURLs)) {
+    result += `<a href="${value.url}">${value.name}</a><br/>`;
+  }
+  return result;
 }
