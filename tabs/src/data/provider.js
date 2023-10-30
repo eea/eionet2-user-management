@@ -246,7 +246,7 @@ async function sendInvitationMail(user) {
     message: {
       subject: config.AddedToTeamsMailSubject,
       body: {
-        contentType: 'Text',
+        contentType: 'HTML',
         content: config.AddedToTeamsMailBody + ' ' + teamsURLs,
       },
       toRecipients: [
@@ -412,7 +412,7 @@ export async function inviteUser(user, mappings) {
         return wrapError(err, messages.UserInvite.Errors.SharepointUser);
       }
     }
-    logInfo('Invitation sent for user', '', user, 'Add user');
+    logInfo('User invited: ' + user.Email, '', user, 'Add user');
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserInvite.Errors.Error);
@@ -578,7 +578,7 @@ export async function removeUser(user) {
       return wrapError(err, messages.UserDelete.Errors.ADUser);
     }
 
-    logInfo('User removed', '', user, 'Remove user');
+    logInfo('User removed: ' + user.Email, '', user, 'Remove user');
     return { Success: true };
   }
   return false;

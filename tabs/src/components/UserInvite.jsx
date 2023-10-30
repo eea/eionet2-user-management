@@ -111,7 +111,7 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
                 <TextField
                   required
                   className="control invite-input"
-                  id="firstName"
+                  id="email"
                   label="Email"
                   variant="standard"
                   onChange={(e) => {
