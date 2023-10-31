@@ -1,7 +1,7 @@
 {
     "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.11/MicrosoftTeams.schema.json",
     "manifestVersion": "1.11",
-    "version": "1.1.22",
+    "version": "1.1.23",
     "id": "${{TEAMS_APP_ID}}",
     "packageName": "com.microsoft.teams.extension",
     "developer": {
@@ -19,8 +19,8 @@
         "full": "${{CONFIG__MANIFEST__APPNAME__FULL}}"
     },
     "description": {
-        "short": "Short description of ${{CONFIG__MANIFEST__APPNAME__SHORT}}",
-        "full": "Full description of ${{CONFIG__MANIFEST__APPNAME__SHORT}}"
+        "short": "User managmenet app for NFPs and specific EEA user administrators",
+        "full": "This app provides the option to invite and manage all external Eionet users and their access to EEAs M365 environments. Access is restricted to dedicated EEA administrators and National Focal Point in the countrie. This app will not load if you do not have the required permissions."
     },
     "accentColor": "#FFFFFF",
     "bots": [],
