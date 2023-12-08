@@ -34,14 +34,19 @@ export function buildTeamsURLs(user, mappings, config) {
         (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
     )
     .forEach((mapping) => {
-      teamURLs[mapping.O365GroupId] = { url: mapping.TeamURL, name: mapping.Membership };
+      teamURLs[mapping.Membership] = {
+        url: mapping.TeamURL,
+        name: mapping.Membership,
+        groupId: mapping.O365GroupId,
+      };
     });
 
-  if (user.NFP && !teamURLs[config.MainEionetGroupId]) {
+  if (user.NFP) {
     const mainMapping = mappings.find((m) => m.O365GroupId === config.MainEionetGroupId);
     teamURLs[config.MainEionetGroupId] = {
       url: mainMapping.TeamURL,
-      mainMapping: mainMapping.Membership,
+      name: 'Eionet',
+      groupId: config.MainEionetGroupId,
     };
   }
 
