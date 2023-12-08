@@ -19,10 +19,26 @@ function wrapError(err, message) {
 }
 
 async function postUserGroup(groupId, userId) {
-  groupId &&
-    (await apiPost('/groups/' + groupId + '/members/$ref', {
-      '@odata.id': constants.DIRECTORY_OBJECTS_PATH + userId,
-    }));
+  if (groupId) {
+    const apiPath = `/groups/${groupId}/members/$ref`;
+    try {
+      await apiPost(apiPath, {
+        '@odata.id': constants.DIRECTORY_OBJECTS_PATH + userId,
+      });
+    } catch (err) {
+      logInfo(
+        `An error has occured when adding userId ${userId} to group ${groupId}. This might be caused by the fact that the user is already member of the group`,
+        apiPath,
+        {
+          userId: userId,
+          groupId: groupId,
+          error: err,
+        },
+        'postUserGroup',
+      );
+      throw err;
+    }
+  }
 }
 
 async function deleteUserGroup(groupId, userId) {
