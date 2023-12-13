@@ -84,7 +84,7 @@
       "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
     ]
   },
-  "overrides": {
+  "resolutions": {
     "@azure/core-rest-pipeline": "1.12.1"
   },
   "homepage": "."
