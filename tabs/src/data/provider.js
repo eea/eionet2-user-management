@@ -554,6 +554,10 @@ export async function removeUser(user) {
 
         if (user.NFP) {
           await deleteUserGroup(config.NFPGroupId, user.ADUserId);
+
+          if (!groups.length) {
+            await deleteUserGroup(config.MainEionetGroupId, user.ADUserId);
+          }
         }
       } catch (err) {
         return wrapError(err, messages.UserDelete.Errors.Groups);
