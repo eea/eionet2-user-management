@@ -463,17 +463,17 @@ export async function editUser(user, mappings, oldValues) {
       groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), user.ADUserId);
     }
 
-    newTags.forEach((m) => {
+    for (const m of newTags) {
       if (!oldTags.includes(m)) {
         addTag(m.O365GroupId, m.Tag, user.ADUserId);
       }
-    });
+    }
 
-    oldTags.forEach((m) => {
+    for (const m of oldTags) {
       if (!newTags.includes(m)) {
         removeTag(m.O365GroupId, m.Tag, user.ADUserId);
       }
-    });
+    }
 
     for (const groupId of oldGroups) {
       if (!newGroups.includes(groupId) && !(user.NFP && groupId === config.MainEionetGroupId)) {
@@ -482,12 +482,12 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     if (oldValues.Country !== user.Country) {
-      newMappings.forEach((m) => {
+      for (const m of newMappings) {
         if (m.Tag) {
           addTag(m.O365GroupId, getCountryName(user.Country), user.ADUserId);
         }
         removeTag(m.O365GroupId, getCountryName(oldValues.Country), user.ADUserId);
-      });
+      }
     }
 
     if (user.NFP && !oldValues.NFP) {
