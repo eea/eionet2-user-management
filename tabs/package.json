@@ -1,6 +1,6 @@
 {
   "name": "@eeacms/eionet2-user-management",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "license": "MIT",
   "description": "Teams app for managing Eionet users.",
   "dependencies": {
@@ -83,6 +83,9 @@
     "transformIgnorePatterns": [
       "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
     ]
+  },
+  "overrides": {
+    "@azure/core-rest-pipeline": "1.12.1"
   },
   "homepage": "."
 }
