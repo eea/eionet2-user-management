@@ -87,8 +87,8 @@ export async function getMe() {
 export async function getUserByMail(email) {
   try {
     const adResponse = await apiGet(
-        "/users/?$filter=mail eq '" + email?.replaceAll("'", "''") + "'",
-      ),
+      "/users/?$filter=mail eq '" + email?.replaceAll("'", "''") + "'",
+    ),
       spUser = await getSPUserByMail(email),
       adMessage = adResponse.graphClientMessage;
 
@@ -243,8 +243,8 @@ async function checkMFAStatus(userDisplayName) {
   try {
     const response = await apiGet(
       "/reports/credentialUserRegistrationDetails?$filter=userDisplayName eq '" +
-        userDisplayName.replace("'", "''") +
-        "'",
+      userDisplayName.replace("'", "''") +
+      "'",
     );
     return response.graphClientMessage;
   } catch (err) {
@@ -299,10 +299,10 @@ export async function inviteUser(user, mappings) {
   capitalizeName(user);
   try {
     let firstMapping = mappings.find(
-        (m) =>
-          (user.Membership && user.Membership.includes(m.Membership)) ||
-          (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
-      ),
+      (m) =>
+        (user.Membership && user.Membership.includes(m.Membership)) ||
+        (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+    ),
       config = await getConfiguration();
     let userId = undefined,
       invitationResponse = undefined,
@@ -430,10 +430,10 @@ export async function editUser(user, mappings, oldValues) {
   capitalizeName(user);
   try {
     let newMappings = mappings.filter(
-        (m) =>
-          (user.Membership && user.Membership.includes(m.Membership)) ||
-          (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
-      ),
+      (m) =>
+        (user.Membership && user.Membership.includes(m.Membership)) ||
+        (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+    ),
       oldMappings = mappings.filter(
         (m) =>
           (oldValues.Membership && oldValues.Membership.includes(m.Membership)) ||
@@ -482,9 +482,16 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     if (user.NFP && !oldValues.NFP) {
-      await postUserGroup(config.NFPGroupId, user.ADUserId);
+      const nfpGroupIds = [
+        ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
+      ];
 
-      if (!newGroups.includes(config.MainEionetGroupId)) {
+      const existingNFPGroups = await getExistingGroups(user.ADUserId, nfpGroupIds);
+
+      if (!existingNFPGroups?.includes(config.NFPGroupId)) {
+        await postUserGroup(config.NFPGroupId, user.ADUserId);
+      }
+      if (!existingNFPGroups?.includes(config.MainEionetGroupId)) {
         await postUserGroup(config.MainEionetGroupId, user.ADUserId);
       }
 
@@ -542,10 +549,10 @@ export async function removeUser(user) {
     if (user.ADUserId) {
       try {
         let filteredMappings = mappings.filter(
-            (m) =>
-              (user.Membership && user.Membership.includes(m.Membership)) ||
-              (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
-          ),
+          (m) =>
+            (user.Membership && user.Membership.includes(m.Membership)) ||
+            (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+        ),
           groups = getDistinctGroupsIds(filteredMappings);
 
         for (const groupId of groups) {
@@ -579,11 +586,11 @@ export async function removeUser(user) {
       const spConfig = await getConfiguration();
       await apiDelete(
         '/sites/' +
-          spConfig.SharepointSiteId +
-          '/lists/' +
-          spConfig.UserListId +
-          '/items/' +
-          user.id,
+        spConfig.SharepointSiteId +
+        '/lists/' +
+        spConfig.UserListId +
+        '/items/' +
+        user.id,
       );
     } catch (err) {
       return wrapError(err, messages.UserDelete.Errors.ADUser);
