@@ -306,12 +306,10 @@ export async function inviteUser(user, mappings) {
       config = await getConfiguration();
     let userId = undefined,
       invitationResponse = undefined,
-      sendMail = false,
-      onlyNFP = false;
+      sendMail = false;
 
     if (user.NFP && !firstMapping) {
       firstMapping = mappings.find((m) => m.O365GroupId === config.MainEionetGroupId);
-      onlyNFP = true;
     }
 
     if (!user.ADProfile) {
@@ -367,48 +365,41 @@ export async function inviteUser(user, mappings) {
 
           try {
             await addTag(config.MainEionetGroupId, constants.NFP_TAG, userId);
-            onlyNFP &&
-              (await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId));
+            await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId);
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
           }
         }
 
-        mappings
-          .filter(
-            (m) =>
-              (user.Membership && user.Membership.includes(m.Membership)) ||
-              (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
-          )
-          .forEach(async (mapping) => {
-            //Set groups and tags
-            try {
-              const groupIds = [
-                ...new Set(
-                  [mapping.O365GroupId, mapping.MailingGroupId, mapping.AdditionalGroupId].filter(
-                    (g) => !!g,
-                  ),
-                ),
-              ];
+        const userMappings = mappings.filter(
+          (m) =>
+            (user.Membership && user.Membership.includes(m.Membership)) ||
+            (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+        );
 
-              const existingGroups = await getExistingGroups(userId, groupIds);
+        //apply user membership and country tag
+        const userGroupIds = getDistinctGroupsIds(userMappings);
+        const existingGroups = await getExistingGroups(userId, userGroupIds);
+        try {
+          for (const groupId of userGroupIds.filter((id) => !existingGroups?.includes(id))) {
+            await postUserGroup(groupId, userId);
 
-              for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
-                await postUserGroup(groupId, userId);
-              }
-            } catch (err) {
-              return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
-            }
-            try {
-              if (mapping.Tag) {
-                //TeamId is the same as O365GroupId
-                await addTag(mapping.O365GroupId, mapping.Tag, userId);
-                await addTag(mapping.O365GroupId, getCountryName(user.Country), userId);
-              }
-            } catch (err) {
-              return wrapError(err, messages.UserInvite.Errors.TagsCreation);
-            }
-          });
+            const groupMapping = userMappings.filter((m) => m.O365GroupId === groupId);
+            groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), userId);
+          }
+        } catch (err) {
+          return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
+        }
+
+        //apply membership tags
+        try {
+          const tags = [...new Set(userMappings.filter((m) => m.Tag))];
+          for (const m of tags) {
+            addTag(m.O365GroupId, m.Tag, userId);
+          }
+        } catch (err) {
+          return wrapError(err, messages.UserInvite.Errors.TagsCreation);
+        }
 
         if (sendMail) {
           try {
@@ -563,6 +554,10 @@ export async function removeUser(user) {
 
         if (user.NFP) {
           await deleteUserGroup(config.NFPGroupId, user.ADUserId);
+
+          if (!groups.length) {
+            await deleteUserGroup(config.MainEionetGroupId, user.ADUserId);
+          }
         }
       } catch (err) {
         return wrapError(err, messages.UserDelete.Errors.Groups);
