@@ -300,6 +300,7 @@ export function UserList({ userInfo }) {
                 u.Country.toLowerCase().includes(value.toLowerCase()) ||
                 u.Organisation.toLowerCase().includes(value.toLowerCase()) ||
                 (u.Title && u.Title.toLowerCase().includes(value.toLowerCase())) ||
+                (u.NFP && u.NFP.toLowerCase().includes(value.toLowerCase())) ||
                 (u.Membership &&
                   u.Membership.some((m) => m.toLowerCase().includes(value.toLowerCase()))) ||
                 (u.OtherMemberships &&

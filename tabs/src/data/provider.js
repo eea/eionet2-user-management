@@ -482,9 +482,16 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     if (user.NFP && !oldValues.NFP) {
-      await postUserGroup(config.NFPGroupId, user.ADUserId);
+      const nfpGroupIds = [
+        ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
+      ];
 
-      if (!newGroups.includes(config.MainEionetGroupId)) {
+      const existingNFPGroups = await getExistingGroups(user.ADUserId, nfpGroupIds);
+
+      if (!existingNFPGroups?.includes(config.NFPGroupId)) {
+        await postUserGroup(config.NFPGroupId, user.ADUserId);
+      }
+      if (!existingNFPGroups?.includes(config.MainEionetGroupId)) {
         await postUserGroup(config.MainEionetGroupId, user.ADUserId);
       }
 
