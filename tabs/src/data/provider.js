@@ -299,8 +299,8 @@ export async function inviteUser(user, mappings) {
           user.Membership?.includes(m.Membership) || user.OtherMemberships?.includes(m.Membership),
       ),
       config = await getConfiguration();
-    let userId = undefined,
-      invitationResponse = undefined,
+    let userId,
+      invitationResponse,
       sendMail = false;
 
     if (user.NFP && !firstMapping) {
@@ -323,7 +323,7 @@ export async function inviteUser(user, mappings) {
       }
 
       try {
-        if (invitationResponse && invitationResponse.graphClientMessage.invitedUser) {
+        if (invitationResponse?.graphClientMessage.invitedUser) {
           userId = invitationResponse.graphClientMessage.invitedUser.id;
           await saveADUser(userId, user);
         }
@@ -430,8 +430,8 @@ export async function editUser(user, mappings, oldValues) {
       ),
       oldMappings = mappings.filter(
         (m) =>
-          (oldValues.Membership && oldValues.Membership.includes(m.Membership)) ||
-          (oldValues.OtherMemberships && oldValues.OtherMemberships.includes(m.Membership)),
+          oldValues.Membership?.includes(m.Membership) ||
+          oldValues.OtherMemberships?.includes(m.Membership),
       ),
       newGroups = getDistinctGroupsIds(newMappings),
       oldGroups = getDistinctGroupsIds(oldMappings),

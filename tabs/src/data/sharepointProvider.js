@@ -35,7 +35,7 @@ export async function getOrganisationList(country) {
   }
 }
 
-let mappingsList = undefined;
+let mappingsList;
 export async function getMappingsList() {
   const config = await getConfiguration();
   try {
@@ -73,23 +73,23 @@ export async function getComboLists() {
     );
     const columns = response.graphClientMessage.value;
     let genderColumn = columns.find((column) => column.name === 'Gender');
-    if (genderColumn && genderColumn.choice) {
+    if (genderColumn?.choice) {
       lists.genders = genderColumn.choice.choices;
     }
     let countryColumn = columns.find((column) => column.name === 'Country');
-    if (countryColumn && countryColumn.choice) {
+    if (countryColumn?.choice) {
       lists.countries = countryColumn.choice.choices;
     }
     let membershipColumn = columns.find((column) => column.name === 'Membership');
-    if (membershipColumn && membershipColumn.choice) {
+    if (membershipColumn?.choice) {
       lists.memberships = membershipColumn.choice.choices.sort();
     }
     let otherMembershipColumn = columns.find((column) => column.name === 'OtherMemberships');
-    if (otherMembershipColumn && otherMembershipColumn.choice) {
+    if (otherMembershipColumn?.choice) {
       lists.otherMemberships = otherMembershipColumn.choice.choices.sort();
     }
     let nfpColumn = columns.find((column) => column.name === 'NFP');
-    if (nfpColumn && nfpColumn.choice) {
+    if (nfpColumn?.choice) {
       lists.nfps = nfpColumn.choice.choices;
     }
 
@@ -112,7 +112,7 @@ export async function getSPUserByMail(email) {
         "'&$expand=fields",
       response = await apiGet(path),
       profile = response.graphClientMessage;
-    if (profile.value && profile.value.length) {
+    if (profile.value?.length) {
       return profile.value[0];
     }
     return undefined;
@@ -153,10 +153,9 @@ export async function getInvitedUsers(userInfo) {
           Title: user.fields.Title,
           Email: user.fields.Email,
           Membership: user.fields.Membership,
-          MembershipString: memberships && memberships.toString(),
+          MembershipString: memberships?.toString(),
           OtherMemberships: user.fields.OtherMemberships,
-          OtherMembershipsString:
-            user.fields.OtherMemberships && user.fields.OtherMemberships.toString(),
+          OtherMembershipsString: user.fields.OtherMemberships?.toString(),
           Country: user.fields.Country ? user.fields.Country : '',
           OrganisationLookupId: user.fields.OrganisationLookupId,
           Organisation: organisation ? organisation.header : '',

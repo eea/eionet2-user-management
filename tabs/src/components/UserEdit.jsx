@@ -66,7 +66,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
           switch (buttonId) {
             case 'submitNew': {
               setSuccess(false);
-              const addResult = await saveFunction.apply(null, [user]);
+              const addResult = await saveFunction(null, [user]);
               if (!addResult.Success) {
                 setWarningText(addResult.Message + '\n' + addResult.Error);
                 setSuccess(false);
