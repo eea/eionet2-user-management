@@ -214,9 +214,8 @@ export function UserList({ userInfo }) {
       let index = 0,
         allMemberships = [];
 
-      params.row.Membership && params.row.Membership.forEach((m) => allMemberships.push(m));
-      params.row.OtherMemberships &&
-        params.row.OtherMemberships.forEach((m) => allMemberships.push(m));
+      params.row.Membership?.forEach((m) => allMemberships.push(m));
+      params.row.OtherMemberships?.forEach((m) => allMemberships.push(m));
       params.row.NFP && allMemberships.push(params.row.NFP);
       return (
         <Tooltip title={allMemberships.join(', ') || ''} arrow>
@@ -299,12 +298,10 @@ export function UserList({ userInfo }) {
                 u.Email.toLowerCase().includes(value.toLowerCase()) ||
                 u.Country.toLowerCase().includes(value.toLowerCase()) ||
                 u.Organisation.toLowerCase().includes(value.toLowerCase()) ||
-                (u.Title && u.Title.toLowerCase().includes(value.toLowerCase())) ||
-                (u.NFP && u.NFP.toLowerCase().includes(value.toLowerCase())) ||
-                (u.Membership &&
-                  u.Membership.some((m) => m.toLowerCase().includes(value.toLowerCase()))) ||
-                (u.OtherMemberships &&
-                  u.OtherMemberships.some((m) => m.toLowerCase().includes(value.toLowerCase())))
+                u.Title?.toLowerCase().includes(value.toLowerCase()) ||
+                u.NFP?.toLowerCase().includes(value.toLowerCase()) ||
+                u.Membership?.some((m) => m.toLowerCase().includes(value.toLowerCase())) ||
+                u.OtherMemberships?.some((m) => m.toLowerCase().includes(value.toLowerCase()))
               );
             }),
           ),

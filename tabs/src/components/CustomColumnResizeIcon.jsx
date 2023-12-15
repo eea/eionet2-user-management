@@ -23,8 +23,8 @@ export default function CustomColumnResizeIcon({ onWidthChanged }) {
 
       const newWidth = parseInt(initialSize) + parseInt(e.clientX - initialPos);
       if (newWidth > 0) {
-        for (var i = 0; i < cells.length; i++) {
-          const style = cells[i].style;
+        for (let cell of cells) {
+          const style = cell.style;
           style.width = style.minWidth = style.maxWidth = `${newWidth}px`;
         }
         columnHeaderStyle.width =
@@ -45,7 +45,7 @@ export default function CustomColumnResizeIcon({ onWidthChanged }) {
     let timeout;
     if (resizeInfo) {
       timeout = setTimeout(() => {
-        onWidthChanged && onWidthChanged(resizeInfo.width, resizeInfo.index);
+        onWidthChanged?.(resizeInfo.width, resizeInfo.index);
       }, 100);
     }
     return () => {

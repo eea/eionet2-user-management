@@ -1,6 +1,6 @@
 import { apiGet, apiPost, apiDelete, getConfiguration } from './apiProvider';
 
-let countryMapping = undefined;
+let countryMapping;
 export async function getCountryCodeMappingsList() {
   const config = await getConfiguration();
   try {
@@ -24,7 +24,7 @@ export async function getCountryCodeMappingsList() {
 }
 
 export function getCountryName(countryCode) {
-  return countryMapping && countryMapping[countryCode];
+  return countryMapping?.[countryCode];
 }
 
 export async function addTag(teamId, name, userId) {

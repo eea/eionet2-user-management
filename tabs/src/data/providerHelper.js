@@ -30,8 +30,7 @@ export function buildTeamsURLs(user, mappings, config) {
   mappings
     .filter(
       (m) =>
-        (user.Membership && user.Membership.includes(m.Membership)) ||
-        (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+        user.Membership?.includes(m.Membership) || user.OtherMemberships?.includes(m.Membership),
     )
     .forEach((mapping) => {
       teamURLs[mapping.Membership] = {

@@ -58,7 +58,7 @@ async function deleteUserGroup(groupId, userId) {
   }
 }
 
-let _profile = undefined;
+let _profile;
 export async function getMe() {
   if (!_profile) {
     const config = await getConfiguration(),
@@ -92,7 +92,7 @@ export async function getUserByMail(email) {
       spUser = await getSPUserByMail(email),
       adMessage = adResponse.graphClientMessage;
 
-    const adUser = adMessage.value && adMessage.value.length ? adMessage.value[0] : undefined;
+    const adUser = adMessage.value?.length ? adMessage.value[0] : undefined;
 
     return {
       ADUser: adUser,
@@ -188,11 +188,7 @@ async function saveSPUser(userId, userData, newYN, oldValues) {
   if (newYN) {
     userData.LastInvitationDate = new Date();
     const mfaResponse = await checkMFAStatus(buildUserDisplaName(userData));
-    isMfaRegistered =
-      mfaResponse &&
-      mfaResponse.value &&
-      mfaResponse.value.length > 0 &&
-      mfaResponse.value[0].isMfaRegistered;
+    isMfaRegistered = mfaResponse?.value?.length > 0 && mfaResponse.value[0].isMfaRegistered;
   }
   userData.Title = userData.FirstName + ' ' + userData.LastName;
   let fields = {
@@ -256,7 +252,7 @@ async function checkMFAStatus(userDisplayName) {
 async function sendInvitationMail(user) {
   const config = await getConfiguration(),
     mappings = await getMappingsList(),
-    teamsURLs = await buildTeamsURLs(user, mappings, config);
+    teamsURLs = buildTeamsURLs(user, mappings, config);
 
   await apiPost('users/' + config.FromEmailAddress + '/sendMail', {
     message: {
@@ -300,8 +296,7 @@ export async function inviteUser(user, mappings) {
   try {
     let firstMapping = mappings.find(
         (m) =>
-          (user.Membership && user.Membership.includes(m.Membership)) ||
-          (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+          user.Membership?.includes(m.Membership) || user.OtherMemberships?.includes(m.Membership),
       ),
       config = await getConfiguration();
     let userId = undefined,
@@ -373,8 +368,8 @@ export async function inviteUser(user, mappings) {
 
         const userMappings = mappings.filter(
           (m) =>
-            (user.Membership && user.Membership.includes(m.Membership)) ||
-            (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+            user.Membership?.includes(m.Membership) ||
+            user.OtherMemberships?.includes(m.Membership),
         );
 
         //apply user membership and country tag
@@ -431,8 +426,7 @@ export async function editUser(user, mappings, oldValues) {
   try {
     let newMappings = mappings.filter(
         (m) =>
-          (user.Membership && user.Membership.includes(m.Membership)) ||
-          (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+          user.Membership?.includes(m.Membership) || user.OtherMemberships?.includes(m.Membership),
       ),
       oldMappings = mappings.filter(
         (m) =>
@@ -550,8 +544,8 @@ export async function removeUser(user) {
       try {
         let filteredMappings = mappings.filter(
             (m) =>
-              (user.Membership && user.Membership.includes(m.Membership)) ||
-              (user.OtherMemberships && user.OtherMemberships.includes(m.Membership)),
+              user.Membership?.includes(m.Membership) ||
+              user.OtherMemberships?.includes(m.Membership),
           ),
           groups = getDistinctGroupsIds(filteredMappings);
 
