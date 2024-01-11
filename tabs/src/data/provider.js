@@ -513,6 +513,7 @@ export async function editUser(user, mappings, oldValues) {
       return wrapError(err, messages.UserEdit.Errors.SharepointUser);
     }
 
+    logInfo(`User edited: ${user.Email}`, '', user, 'Edit user');
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserEdit.Errors.Error);

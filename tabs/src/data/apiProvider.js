@@ -111,12 +111,14 @@ export async function logError(err, apiPath, data) {
   const spConfig = await getConfiguration(),
     userMail = await getUserMail();
 
+  const title = err.response?.data?.error?.body || err.message;
+
   let fields = {
     fields: {
       ApplicationName: constants.APPLICATION_NAME,
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
-      Title: err.response?.data?.error?.body.substring(0, 255),
+      Title: title?.substring(0, 255),
       UserMail: userMail,
       Timestamp: new Date(),
       Logtype: 'Error',
