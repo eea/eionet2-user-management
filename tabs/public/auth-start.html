@@ -91,7 +91,7 @@
       // y could be 1000, 1001, 1010, 1011 since most significant two bits needs to be 10
       // y values are 8, 9, A, B
       var cryptoObj = window.crypto || window.msCrypto; // for IE 11
-      if (cryptoObj && cryptoObj.getRandomValues) {
+      if (cryptoObj?.getRandomValues) {
         var buffer = new Uint8Array(16);
         cryptoObj.getRandomValues(buffer);
         //buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
@@ -169,7 +169,7 @@
 
     // Return the base64-urlencoded sha256 hash for the PKCE challenge
     async function pkceChallengeFromVerifier(v) {
-      hashed = await sha256(v);
+      let hashed = await sha256(v);
       return base64urlencode(hashed);
     }
   </script>

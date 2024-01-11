@@ -83,7 +83,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               } else {
                 setOldValues(JSON.parse(JSON.stringify(user)));
                 userEntity = JSON.parse(JSON.stringify(user));
-                refreshRow && refreshRow(user);
+                refreshRow?.(user);
               }
               setSuccess(true);
               break;
@@ -97,7 +97,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               } else {
                 setOldValues(JSON.parse(JSON.stringify(user)));
                 userEntity = JSON.parse(JSON.stringify(user));
-                refreshRow && refreshRow(user);
+                refreshRow?.(user);
               }
               setResendSuccess(true);
               break;
@@ -118,8 +118,8 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
       userOrganisation[0] && setUnspecifiedOrg(userOrganisation[0].unspecified);
     },
     validateMembership = () => {
-      const validMembership = user.Membership && user.Membership.length > 0,
-        validOtherMemberships = user.OtherMemberships && user.OtherMemberships.length > 0;
+      const validMembership = user.Membership?.length > 0,
+        validOtherMemberships = user.OtherMemberships?.length > 0;
       if (!validMembership && !validOtherMemberships && !user.NFP) {
         setWarningText(messages.UserEdit.MissingMembership);
         return false;
@@ -234,8 +234,8 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               options={genders}
               isOptionEqualToValue={(option, value) => option === value}
               onChange={(_e, value) => {
-                user.Gender = value ? value : '';
-                user.GenderTitle = value ? value : '';
+                user.Gender = value || '';
+                user.GenderTitle = value || '';
               }}
               renderInput={(params) => (
                 <TextField
@@ -353,10 +353,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               }}
               options={organisations}
               getOptionLabel={(option) =>
-                Object.prototype.hasOwnProperty.call(option, 'header') &&
-                option.header !== undefined
-                  ? option.header
-                  : ''
+                Object.hasOwn(option, 'header') && option.header !== undefined ? option.header : ''
               }
               isOptionEqualToValue={(option, value) => option.content === value.content}
               onChange={(e, value) => {
@@ -392,7 +389,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 id="membership"
                 defaultValue={user.Membership}
                 options={memberships}
-                getOptionLabel={(option) => (option ? option : '')}
+                getOptionLabel={(option) => option || ''}
                 onChange={(_e, value) => {
                   user.Membership = value;
                 }}
@@ -420,7 +417,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 id="membership"
                 defaultValue={user.Membership}
                 options={memberships}
-                getOptionLabel={(option) => (option ? option : '')}
+                getOptionLabel={(option) => option || ''}
                 onChange={(_e, value) => {
                   user.Membership = value;
                   const eeaNominatedVisible = userInfo.isAdmin && value && value.length > 0;
@@ -448,7 +445,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 id="otherMembership"
                 defaultValue={user.OtherMemberships}
                 options={otherMemberships}
-                getOptionLabel={(option) => (option ? option : '')}
+                getOptionLabel={(option) => option || ''}
                 onChange={(_e, value) => {
                   user.OtherMemberships = value;
                 }}

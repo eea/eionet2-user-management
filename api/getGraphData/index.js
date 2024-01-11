@@ -62,7 +62,7 @@ module.exports = async function (context, req, teamsfxContext) {
   // Construct credential.
   let credential;
   const method = req.method.toLowerCase();
-  const credentialType = method != "get" ? req.body && req.body.credentialType : req.query.credentialType;
+  const credentialType = method != "get" ? req.body?.credentialType : req.query.credentialType;
   try {
     if (!credentialType) {
       return {
@@ -99,7 +99,7 @@ module.exports = async function (context, req, teamsfxContext) {
     const graphClient = teamsfx.createMicrosoftGraphClient(credential);
     graphClient.config.defaultVersion = 'beta';
     let path = "";
-    let result = undefined;
+    let result;
 
     switch (method) {
       case "get":
