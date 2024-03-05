@@ -1,5 +1,6 @@
 import { React, useState, useEffect } from 'react';
-import { getUser, removeUser, removeUserMemberships, getUserGroups } from '../data/provider';
+import { getUser, removeUser, removeUserMemberships } from '../data/provider';
+import { getUserGroups } from '../data/userGroupProvider';
 import { logInfo, getConfiguration } from '../data/apiProvider';
 import { getInvitedUsers } from '../data/sharepointProvider';
 import messages from '../data/messages.json';
