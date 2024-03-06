@@ -113,16 +113,17 @@ export async function inviteUser(user, mappings) {
     } else {
       userId = user.ADProfile.id;
       try {
+        //check MFA status only for existing
+        user.LastInvitationDate = new Date();
+        const mfaResponse = await checkMFAStatus(user.ADProfile.displayName);
+        user.SignedIn = mfaResponse?.value?.length > 0 && mfaResponse.value[0].isMfaRegistered;
+
         await saveADUser(userId, user);
       } catch (err) {
         return wrapError(err, messages.UserEdit.Errors.ADUser);
       }
       sendMail = true;
     }
-
-    user.LastInvitationDate = new Date();
-    const mfaResponse = await checkMFAStatus(buildUserDisplaName(user));
-    user.SignedIn = mfaResponse?.value?.length > 0 && mfaResponse.value[0].isMfaRegistered;
 
     if (userId) {
       try {
@@ -141,15 +142,6 @@ export async function inviteUser(user, mappings) {
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
           }
-
-          if (user.SignedIn) {
-            try {
-              await addTag(config.MainEionetGroupId, constants.NFP_TAG, userId);
-              await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId);
-            } catch (err) {
-              return wrapError(err, messages.UserInvite.Errors.TagsCreation);
-            }
-          }
         }
 
         const userMappings = mappings.filter(
@@ -164,9 +156,6 @@ export async function inviteUser(user, mappings) {
         try {
           for (const groupId of userGroupIds.filter((id) => !existingGroups?.includes(id))) {
             await postUserGroup(groupId, userId);
-
-            const groupMapping = userMappings.filter((m) => m.O365GroupId === groupId);
-            groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), userId);
           }
         } catch (err) {
           return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
@@ -175,9 +164,14 @@ export async function inviteUser(user, mappings) {
         if (user.SignedIn) {
           //apply membership tags
           try {
+            if (user.NFP) {
+              await addTag(config.MainEionetGroupId, constants.NFP_TAG, userId);
+              await addTag(config.MainEionetGroupId, getCountryName(user.Country), userId);
+            }
             const tags = [...new Set(userMappings.filter((m) => m.Tag))];
             for (const m of tags) {
               addTag(m.O365GroupId, m.Tag, userId);
+              addTag(m.O365GroupId, getCountryName(user.Country), userId);
             }
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
