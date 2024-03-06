@@ -34,7 +34,7 @@ export async function apiGet(path, credentialType = 'app') {
   }
 }
 
-export async function apiPost(path, data, credentialType = 'app') {
+export async function apiPost(path, data, credentialType = 'app', skipLog) {
   try {
     return await callApiFunction(constants.API_FUNCTION, 'post', {
       credentialType: credentialType,
@@ -42,7 +42,7 @@ export async function apiPost(path, data, credentialType = 'app') {
       path: path,
     });
   } catch (err) {
-    logError(err, path, data);
+    !skipLog && logError(err, path, data);
     throw err;
   }
 }
@@ -108,8 +108,7 @@ export async function getConfiguration() {
 }
 
 export async function logError(err, apiPath, data) {
-  const spConfig = await getConfiguration(),
-    userMail = await getUserMail();
+  const userMail = await getUserMail();
 
   const title = err.response?.data?.error?.body || err.message;
 
@@ -125,9 +124,16 @@ export async function logError(err, apiPath, data) {
     },
   };
 
-  let graphURL =
-    '/sites/' + spConfig.SharepointSiteId + '/lists/' + spConfig.LoggingListId + '/items';
-  await apiPost(graphURL, fields);
+  if (_configuration) {
+    await apiPost(
+      `/sites/${_configuration.SharepointSiteId}/lists/${_configuration.LoggingListId}/items`,
+      fields,
+      'app',
+      true,
+    );
+  } else {
+    console.log('Configuration not loaded cannot proceed');
+  }
 }
 
 export async function logInfo(message, apiPath, data, action) {

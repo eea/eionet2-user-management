@@ -1,4 +1,5 @@
-import { apiGet, getConfiguration } from './apiProvider';
+import { apiGet, apiPost, apiPatch, getConfiguration } from './apiProvider';
+import { sendOrgSuggestionNotification } from './notificationProvider';
 
 export async function getOrganisationList(country) {
   const config = await getConfiguration();
@@ -32,35 +33,6 @@ export async function getOrganisationList(country) {
   } catch (err) {
     console.log(err);
     return [];
-  }
-}
-
-let mappingsList;
-export async function getMappingsList() {
-  const config = await getConfiguration();
-  try {
-    if (!mappingsList) {
-      const response = await apiGet(
-        '/sites/' +
-          config.SharepointSiteId +
-          '/lists/' +
-          config.MappingListId +
-          '/items?$expand=fields',
-      );
-      mappingsList = response.graphClientMessage.value.map(function (mapping) {
-        return {
-          TeamURL: mapping.fields.TeamURL,
-          O365GroupId: mapping.fields.O365GroupId,
-          Membership: mapping.fields.Membership,
-          Tag: mapping.fields.Tag,
-          MailingGroupId: mapping.fields.MailingGroupId,
-          AdditionalGroupId: mapping.fields.AdditionalGroupId,
-        };
-      });
-    }
-    return mappingsList;
-  } catch (err) {
-    console.log(err);
   }
 }
 
@@ -186,5 +158,53 @@ export async function getInvitedUsers(userInfo) {
     return result;
   } catch (err) {
     console.log(err);
+  }
+}
+
+export async function saveSPUser(userId, userData, newYN, oldValues) {
+  const spConfig = await getConfiguration();
+
+  userData.Title = userData.FirstName + ' ' + userData.LastName;
+  let fields = {
+    fields: {
+      Phone: userData.Phone,
+      Email: userData.Email,
+      Country: userData.Country,
+      ...(userData.Membership && {
+        'Membership@odata.type': 'Collection(Edm.String)',
+        Membership: userData.Membership,
+      }),
+      ...(userData.OtherMemberships && {
+        'OtherMemberships@odata.type': 'Collection(Edm.String)',
+        OtherMemberships: userData.OtherMemberships,
+      }),
+      ...(userData.LastInvitationDate && { LastInvitationDate: userData.LastInvitationDate }),
+      Title: userData.Title,
+      Gender: userData.Gender,
+      Organisation: userData.Organisation,
+      OrganisationLookupId: userData.OrganisationLookupId,
+      ADUserId: userId,
+      NFP: userData.NFP,
+      SuggestedOrganisation: userData.SuggestedOrganisation,
+      EEANominated: userData.EEANominated,
+      ...(userData.SignedIn && { SignedIn: true }),
+      ...(userData.SignedIn && { SignedInDate: new Date() }),
+    },
+  };
+
+  let graphURL = '/sites/' + spConfig.SharepointSiteId + '/lists/' + spConfig.UserListId + '/items';
+  if (newYN) {
+    await apiPost(graphURL, fields);
+  } else {
+    graphURL += '/' + userData.id;
+    await apiPatch(graphURL, fields);
+  }
+
+  let organisationChanged =
+    oldValues &&
+    userData.SuggestedOrganisation &&
+    userData.SuggestedOrganisation != oldValues.SuggestedOrganisation;
+  if (userData.SuggestedOrganisation && (newYN || organisationChanged)) {
+    sendOrgSuggestionNotification(userData.SuggestedOrganisation);
   }
 }

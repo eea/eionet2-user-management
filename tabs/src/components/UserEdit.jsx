@@ -1,7 +1,8 @@
 import { React, useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { editUser, resendInvitation } from '../data/provider';
-import { getComboLists, getOrganisationList, getMappingsList } from '../data/sharepointProvider';
+import { getComboLists, getOrganisationList } from '../data/sharepointProvider';
+import { getMappingsList } from '../data/configurationProvider';
 import { validateName, validatePhone, validateMandatoryField } from '../data/validator';
 import './UserEdit.scss';
 import messages from '../data/messages.json';

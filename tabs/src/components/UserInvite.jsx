@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from 'react';
 import { getUserByMail, inviteUser } from '../data/provider';
-import { getMappingsList } from '../data/sharepointProvider';
+import { getMappingsList } from '../data/configurationProvider';
 import messages from '../data/messages.json';
 import validator from 'validator';
 import './UserInvite.scss';

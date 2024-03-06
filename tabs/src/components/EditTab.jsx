@@ -1,5 +1,5 @@
 import { React, useState, useEffect } from 'react';
-import { getMe } from '../data/provider';
+import { getMe } from '../data/configurationProvider';
 import { getCountryCodeMappingsList } from '../data/tagProvider';
 import { UserList } from './UserList';
 import { Backdrop, CircularProgress, Typography } from '@mui/material';
