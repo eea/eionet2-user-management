@@ -23,7 +23,7 @@ export async function getUserGroups(userId) {
   }
 }
 
-export async function postUserGroup(groupId, userId) {
+export async function postUserGroup(groupId, userId, email) {
   if (groupId) {
     const apiPath = `/groups/${groupId}/members/$ref`;
     try {
@@ -40,13 +40,14 @@ export async function postUserGroup(groupId, userId) {
           error: err,
         },
         'postUserGroup',
+        email,
       );
       throw err;
     }
   }
 }
 
-export async function deleteUserGroup(groupId, userId) {
+export async function deleteUserGroup(groupId, userId, email) {
   try {
     await apiDelete('/groups/' + groupId + '/members/' + userId + '/$ref');
   } catch (err) {
@@ -59,6 +60,7 @@ export async function deleteUserGroup(groupId, userId) {
         error: err,
       },
       'Remove group',
+      email,
     );
   }
 }
