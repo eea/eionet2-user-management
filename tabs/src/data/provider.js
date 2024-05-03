@@ -137,7 +137,7 @@ export async function inviteUser(user, mappings) {
             const existingGroups = await getExistingGroups(userId, groupIds);
 
             for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
-              await postUserGroup(groupId, userId);
+              await postUserGroup(groupId, userId, user.Email);
             }
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
@@ -155,7 +155,7 @@ export async function inviteUser(user, mappings) {
         const existingGroups = await getExistingGroups(userId, userGroupIds);
         try {
           for (const groupId of userGroupIds.filter((id) => !existingGroups?.includes(id))) {
-            await postUserGroup(groupId, userId);
+            await postUserGroup(groupId, userId, user.Email);
           }
         } catch (err) {
           return wrapError(err, messages.UserInvite.Errors.JoiningTeam);
@@ -196,7 +196,7 @@ export async function inviteUser(user, mappings) {
         return wrapError(err, messages.UserInvite.Errors.SharepointUser);
       }
     }
-    logInfo('User invited: ' + user.Email, '', user, 'Add user');
+    logInfo('User invited: ' + user.Email, '', user, 'Add user', user.Email);
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserInvite.Errors.Error);
@@ -224,7 +224,7 @@ export async function editUser(user, mappings, oldValues) {
     const existingGroups = await getExistingGroups(user.ADUserId, newGroups);
 
     for (const groupId of newGroups.filter((id) => !existingGroups?.includes(id))) {
-      await postUserGroup(groupId, user.ADUserId);
+      await postUserGroup(groupId, user.ADUserId, user.Email);
 
       const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
       groupMapping[0]?.Tag && addTag(groupId, getCountryName(user.Country), user.ADUserId);
@@ -246,7 +246,7 @@ export async function editUser(user, mappings, oldValues) {
 
     for (const groupId of oldGroups) {
       if (!newGroups.includes(groupId) && !(user.NFP && groupId === config.MainEionetGroupId)) {
-        await deleteUserGroup(groupId, user.ADUserId);
+        await deleteUserGroup(groupId, user.ADUserId, user.Email);
       }
     }
 
@@ -267,10 +267,10 @@ export async function editUser(user, mappings, oldValues) {
       const existingNFPGroups = await getExistingGroups(user.ADUserId, nfpGroupIds);
 
       if (!existingNFPGroups?.includes(config.NFPGroupId)) {
-        await postUserGroup(config.NFPGroupId, user.ADUserId);
+        await postUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
       }
       if (!existingNFPGroups?.includes(config.MainEionetGroupId)) {
-        await postUserGroup(config.MainEionetGroupId, user.ADUserId);
+        await postUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
       }
 
       if (user.SignedIn) {
@@ -281,9 +281,9 @@ export async function editUser(user, mappings, oldValues) {
         }
       }
     } else if (!user.NFP && oldValues.NFP) {
-      await deleteUserGroup(config.NFPGroupId, user.ADUserId);
+      await deleteUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
       if (!newGroups.includes(config.MainEionetGroupId)) {
-        await deleteUserGroup(config.MainEionetGroupId, user.ADUserId);
+        await deleteUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
       }
     }
 
@@ -299,7 +299,7 @@ export async function editUser(user, mappings, oldValues) {
       return wrapError(err, messages.UserEdit.Errors.SharepointUser);
     }
 
-    logInfo(`User edited: ${user.Email}`, '', user, 'Edit user');
+    logInfo(`User edited: ${user.Email}`, '', user, 'Edit user', user.Email);
     return { Success: true };
   } catch (err) {
     return wrapError(err, messages.UserEdit.Errors.Error);
@@ -337,14 +337,14 @@ export async function removeUser(user) {
           groups = getDistinctGroupsIds(filteredMappings);
 
         for (const groupId of groups) {
-          await deleteUserGroup(groupId, user.ADUserId);
+          await deleteUserGroup(groupId, user.ADUserId, user.Email);
         }
 
         if (user.NFP) {
-          await deleteUserGroup(config.NFPGroupId, user.ADUserId);
+          await deleteUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
 
           if (!groups.length) {
-            await deleteUserGroup(config.MainEionetGroupId, user.ADUserId);
+            await deleteUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
           }
         }
       } catch (err) {
@@ -377,7 +377,7 @@ export async function removeUser(user) {
       return wrapError(err, messages.UserDelete.Errors.ADUser);
     }
 
-    logInfo('User removed: ' + user.Email, '', user, 'Remove user');
+    logInfo('User removed: ' + user.Email, '', user, 'Remove user', user.Email);
     return { Success: true };
   }
   return false;

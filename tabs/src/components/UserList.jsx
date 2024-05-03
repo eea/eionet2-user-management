@@ -95,7 +95,8 @@ export function UserList({ userInfo }) {
                       }
                     }
                     setAlertOpen(missingUser);
-                    missingUser && logInfo(messages.UserList.MissingADUser, '', user, 'Edit user');
+                    missingUser &&
+                      logInfo(messages.UserList.MissingADUser, '', user, 'Edit user', user.Email);
                   }}
                 >
                   <CreateIcon />
