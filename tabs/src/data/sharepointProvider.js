@@ -142,6 +142,9 @@ export async function getInvitedUsers(userInfo) {
             ? user.fields.LastInvitationDate
             : user.createdDateTime,
           EEANominated: user.fields.EEANominated || false,
+          Department: user.fields.Department,
+          JobTitle: user.fields.JobTitle,
+          PCP: user.fields.PCP,
           id: user.fields.id,
         });
       });
@@ -161,10 +164,43 @@ export async function getInvitedUsers(userInfo) {
   }
 }
 
+export async function checkPCP(userData) {
+  const config = await getConfiguration(),
+    duplicates = {};
+
+  //sync PCP
+  if (userData.PCP?.length) {
+    userData.PCP.forEach((value, index) => {
+      if (!userData.Membership.includes(value)) {
+        userData.PCP.splice(index, 1);
+      }
+    });
+
+    try {
+      const path = `sites/${config.SharepointSiteId}/lists/${config.UserListId}/items?$filter=fields/Country eq '${userData.Country}'&$expand=fields`,
+        response = await apiGet(path),
+        result = response.graphClientMessage;
+      if (result.value?.length) {
+        const users = result.value;
+        userData.PCP.forEach((pcpValue) => {
+          const existing = users.find(
+            (u) => u.fields.PCP.includes(pcpValue) && u.fields.Email != userData.Email,
+          );
+          existing && (duplicates[pcpValue] = existing.fields.Email);
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  return duplicates;
+}
+
 export async function saveSPUser(userId, userData, newYN, oldValues) {
   const spConfig = await getConfiguration();
 
   userData.Title = userData.FirstName + ' ' + userData.LastName;
+
   let fields = {
     fields: {
       Phone: userData.Phone,
@@ -187,6 +223,12 @@ export async function saveSPUser(userId, userData, newYN, oldValues) {
       NFP: userData.NFP,
       SuggestedOrganisation: userData.SuggestedOrganisation,
       EEANominated: userData.EEANominated,
+      Department: userData.Department,
+      JobTitle: userData.JobTitle,
+      ...(userData.PCP && {
+        'PCP@odata.type': 'Collection(Edm.String)',
+        PCP: userData.PCP,
+      }),
       ...(userData.SignedIn && { SignedIn: true }),
       ...(userData.SignedIn && { SignedInDate: new Date() }),
     },
