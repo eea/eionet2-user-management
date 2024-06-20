@@ -10,7 +10,7 @@ import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import { HtmlBox } from './HtmlBox';
 
-export function UserInvite({ userInfo, refreshList, configuration }) {
+export function UserInvite({ userInfo, refreshList, configuration, checkPCP }) {
   const [inputEmail, setInputEmail] = useState(''),
     [formVisible, setFormVisible] = useState(false),
     [emailCheckVisible, setEmailCheckVisible] = useState(true),
@@ -170,6 +170,7 @@ export function UserInvite({ userInfo, refreshList, configuration }) {
               newYN={true}
               userInfo={userInfo}
               configuration={configuration}
+              checkPCP={checkPCP}
             ></UserEdit>
           </Box>
         )}

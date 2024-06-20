@@ -5,6 +5,9 @@ import { UserList } from './UserList';
 import { Backdrop, CircularProgress, Typography } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+import { AppInsightsContext } from '@microsoft/applicationinsights-react-js';
+import { reactPlugin } from './AppInsights';
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -67,21 +70,25 @@ export default function EditTab() {
   }, []);
 
   return (
-    <div>
-      <ThemeProvider theme={theme}>
-        <Backdrop
-          sx={{ color: '#6b32a8', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-          open={loading}
-        >
-          <CircularProgress color="inherit" />
-        </Backdrop>
-        {userInfo.isLoaded && !userInfo.isGuest && (
-          <UserList showFunction={showFunction} userInfo={userInfo} />
-        )}
-        <Typography sx={{ position: 'absolute', bottom: '0', left: '0', width: '100%', zIndex: 1 }}>
-          v{`${process.env.REACT_APP_VERSION}`}
-        </Typography>
-      </ThemeProvider>
-    </div>
+    <AppInsightsContext.Provider value={reactPlugin}>
+      <div>
+        <ThemeProvider theme={theme}>
+          <Backdrop
+            sx={{ color: '#6b32a8', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+          {userInfo.isLoaded && !userInfo.isGuest && (
+            <UserList showFunction={showFunction} userInfo={userInfo} />
+          )}
+          <Typography
+            sx={{ position: 'absolute', bottom: '0', left: '0', width: '100%', zIndex: 1 }}
+          >
+            v{`${process.env.REACT_APP_VERSION}`}
+          </Typography>
+        </ThemeProvider>
+      </div>
+    </AppInsightsContext.Provider>
   );
 }
