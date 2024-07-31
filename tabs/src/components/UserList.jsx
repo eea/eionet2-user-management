@@ -322,9 +322,12 @@ export function UserList({ userInfo }) {
         );
       }
     },
-    checkPCP = (user, pcpGroup) => {
-      const result = users.filter((u) => u.Email != user.Email && u.PCP?.includes(pcpGroup));
-      return result.length == 0;
+    checkPCP = (user) => {
+      const result = (user.PCP || []).filter(
+        (pcpGroup) =>
+          users.filter((u) => u.Email != user.Email && u.PCP?.includes(pcpGroup)).length > 0,
+      );
+      return result || [];
     };
 
   const columns = [

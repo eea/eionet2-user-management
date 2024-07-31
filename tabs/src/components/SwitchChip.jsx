@@ -22,7 +22,7 @@ export default function SwitchChip(props) {
             name="pcp"
           />
         }
-        label="PCP"
+        label="Lead"
       />
     </Box>
   );

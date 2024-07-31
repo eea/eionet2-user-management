@@ -48,7 +48,6 @@ export function UserEdit({
     [resendSuccess, setResendSuccess] = useState(false),
     [oldValues, setOldValues] = useState(JSON.parse(JSON.stringify(user))),
     [warningText, setWarningText] = useState(''),
-    [pcpWarningText, setPcpWarningText] = useState(''),
     [pcps, setPcps] = useState(user.PCP || []),
     [eeaNominated, setEeaNominated] = useState(userEntity.EEANominated);
 
@@ -73,7 +72,6 @@ export function UserEdit({
         e.preventDefault();
         let tempErrors = validateForm();
         setWarningText('');
-        setPcpWarningText('');
         if (
           (!tempErrors ||
             !Object.values(tempErrors).some((v) => {
@@ -205,15 +203,16 @@ export function UserEdit({
     onPCPChange = (value, option) => {
       !pcps && setPcps([]);
       if (value) {
-        if (checkPCP && checkPCP(user, option)) {
-          pcps.push(option);
-          setPcpWarningText('');
-        } else {
-          setPcpWarningText(messages.UserEdit.Errors.PCP + option);
-        }
+        pcps.push(option);
       } else {
         const index = pcps.indexOf(option);
         index >= 0 && pcps.splice(index, 1);
+      }
+      const result = checkPCP && checkPCP(user, option);
+      if (result.length) {
+        setWarningText(`${configuration.PcpValidationMessage} ${result.join(', ')}`);
+      } else {
+        setWarningText('');
       }
     };
 
@@ -626,7 +625,7 @@ export function UserEdit({
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading || (newYN && success)}
+                  disabled={loading || (newYN && success) || warningText}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   {success ? 'Saved and invitation sent' : 'Save and send invitation'}
@@ -640,7 +639,7 @@ export function UserEdit({
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading}
+                  disabled={loading || warningText}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   Update user
@@ -655,7 +654,7 @@ export function UserEdit({
                   size="medium"
                   style={{ marginLeft: 16 }}
                   className="button"
-                  disabled={loading}
+                  disabled={loading || warningText}
                   endIcon={resendSuccess ? <CheckIcon /> : <SendIcon />}
                 >
                   {' '}
@@ -675,14 +674,11 @@ export function UserEdit({
                 />
               )}
             </Box>
+          </div>
+          <div className="row">
             {warningText && (
               <FormLabel className="note-label warning" error>
                 {warningText}
-              </FormLabel>
-            )}
-            {pcpWarningText && (
-              <FormLabel className="note-label warning" error>
-                {pcpWarningText}
               </FormLabel>
             )}
           </div>
