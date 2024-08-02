@@ -11,7 +11,6 @@ import {
   TextField,
   Autocomplete,
   Button,
-  FormLabel,
   CircularProgress,
   Backdrop,
   Link,
@@ -606,6 +605,13 @@ export function UserEdit({
               />
             )}
           </div>
+          {warningText && (
+            <div className="row">
+              <Alert sx={{ fontWeight: 'bold' }} severity="error" className="note-label warning">
+                {warningText}
+              </Alert>
+            </div>
+          )}
           {!newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
               <Alert sx={{ fontWeight: 'bold' }} severity="warning" className="note-label warning">
@@ -675,22 +681,16 @@ export function UserEdit({
               )}
             </Box>
           </div>
-          <div className="row">
-            {warningText && (
-              <FormLabel className="note-label warning" error>
-                {warningText}
-              </FormLabel>
-            )}
-          </div>
+
           {!newYN && (
             <div className="row">
-              <FormLabel className="note-label control">
+              <Alert className="note-label warning" severity="info">
                 Note: If the email or other details needs to be changed, kindly contact{' '}
                 <Link className="mail-link" href="mailto:helpdesk@eea.europa.eu">
                   EEA Helpdesk
                 </Link>
                 .
-              </FormLabel>
+              </Alert>
             </div>
           )}
         </Box>
