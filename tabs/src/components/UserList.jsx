@@ -314,7 +314,9 @@ export function UserList({ userInfo }) {
                 u.Title?.toLowerCase().includes(value.toLowerCase()) ||
                 u.NFP?.toLowerCase().includes(value.toLowerCase()) ||
                 u.Membership?.some((m) => m.toLowerCase().includes(value.toLowerCase())) ||
-                u.OtherMemberships?.some((m) => m.toLowerCase().includes(value.toLowerCase()))
+                u.OtherMemberships?.some((m) => m.toLowerCase().includes(value.toLowerCase())) ||
+                u.JobTitle?.toLowerCase().includes(value.toLowerCase()) ||
+                u.Department?.toLowerCase().includes(value.toLowerCase())
               );
             }),
           ),
