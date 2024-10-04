@@ -66,66 +66,66 @@ export function UserEdit({
     );
 
   const submit = async (e) => {
-    const buttonId = e.nativeEvent.submitter.id;
-    if (!loading) {
-      e.preventDefault();
-      let tempErrors = validateForm();
-      setWarningText('');
-      if (
-        (!tempErrors ||
-          !Object.values(tempErrors).some((v) => {
-            return v;
-          })) &&
-        validateMembership()
-      ) {
-        setLoading(true);
-        user.PCP = pcps;
-        switch (buttonId) {
-          case 'submitNew': {
-            setSuccess(false);
-            const addResult = await saveFunction.apply(null, [user]);
-            if (!addResult.Success) {
-              setWarningText(addResult.Message + '\n' + addResult.Error);
+      const buttonId = e.nativeEvent.submitter.id;
+      if (!loading) {
+        e.preventDefault();
+        let tempErrors = validateForm();
+        setWarningText('');
+        if (
+          (!tempErrors ||
+            !Object.values(tempErrors).some((v) => {
+              return v;
+            })) &&
+          validateMembership()
+        ) {
+          setLoading(true);
+          user.PCP = pcps;
+          switch (buttonId) {
+            case 'submitNew': {
               setSuccess(false);
+              const addResult = await saveFunction.apply(null, [user]);
+              if (!addResult.Success) {
+                setWarningText(addResult.Message + '\n' + addResult.Error);
+                setSuccess(false);
+              }
+              setSuccess(true);
+              break;
             }
-            setSuccess(true);
-            break;
-          }
-          case 'submitEdit': {
-            setSuccess(false);
-            const editResult = await editUser(user, mappings, oldValues);
-            if (!editResult.Success) {
-              setWarningText(editResult.Message + '\n' + editResult.Error);
+            case 'submitEdit': {
               setSuccess(false);
-            } else {
-              setOldValues(JSON.parse(JSON.stringify(user)));
-              userEntity = JSON.parse(JSON.stringify(user));
-              refreshRow?.(user);
+              const editResult = await editUser(user, mappings, oldValues);
+              if (!editResult.Success) {
+                setWarningText(editResult.Message + '\n' + editResult.Error);
+                setSuccess(false);
+              } else {
+                setOldValues(JSON.parse(JSON.stringify(user)));
+                userEntity = JSON.parse(JSON.stringify(user));
+                refreshRow?.(user);
+              }
+              setSuccess(true);
+              break;
             }
-            setSuccess(true);
-            break;
-          }
-          case 'submitResend': {
-            setResendSuccess(false);
-            const resendResult = await resendInvitation(user, mappings, oldValues);
-            if (!resendResult.Success) {
-              setWarningText(resendResult.Message + '\n' + resendResult.Error);
+            case 'submitResend': {
               setResendSuccess(false);
-            } else {
-              setOldValues(JSON.parse(JSON.stringify(user)));
-              userEntity = JSON.parse(JSON.stringify(user));
-              refreshRow?.(user);
+              const resendResult = await resendInvitation(user, mappings, oldValues);
+              if (!resendResult.Success) {
+                setWarningText(resendResult.Message + '\n' + resendResult.Error);
+                setResendSuccess(false);
+              } else {
+                setOldValues(JSON.parse(JSON.stringify(user)));
+                userEntity = JSON.parse(JSON.stringify(user));
+                refreshRow?.(user);
+              }
+              setResendSuccess(true);
+              break;
             }
-            setResendSuccess(true);
-            break;
           }
+          setPcps(user.PCP);
+          setLoading(false);
+          trackUser();
         }
-        setPcps(user.PCP);
-        setLoading(false);
-        trackUser();
       }
-    }
-  },
+    },
     loadOrganisations = async () => {
       let loadedOrganisations = await getOrganisationList(user.Country);
       if (loadedOrganisations) {
