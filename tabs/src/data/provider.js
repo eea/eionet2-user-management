@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPatch, apiDelete, getConfiguration, logInfo } from './apiProvider';
-import { getSPUserByMail, saveSPUser } from './sharepointProvider';
+import { getSPUserByMail, saveSPUser, checkPCP } from './sharepointProvider';
 import { getMappingsList } from './configurationProvider';
 import { getDistinctGroupsIds, capitalizeName, buildUserDisplaName } from './providerHelper';
 import { addTag, removeTag, getCountryName } from './tagProvider';
@@ -85,6 +85,15 @@ export async function inviteUser(user, mappings) {
 
     if (user.NFP && !firstMapping) {
       firstMapping = mappings.find((m) => m.O365GroupId === config.MainEionetGroupId);
+    }
+
+    const duplicates = await checkPCP(user),
+      entries = Object.entries(duplicates);
+    if (entries.length > 0) {
+      return wrapError(
+        {},
+        messages.UserInvite.Errors.PCP + entries.map(([k, v]) => `${k}: ${v}`).join(', '),
+      );
     }
 
     if (!user.ADProfile) {
@@ -206,6 +215,15 @@ export async function inviteUser(user, mappings) {
 export async function editUser(user, mappings, oldValues) {
   capitalizeName(user);
   try {
+    const duplicates = await checkPCP(user),
+      entries = Object.entries(duplicates);
+    if (entries.length > 0) {
+      return wrapError(
+        {},
+        messages.UserEdit.Errors.PCP + entries.map(([k, v]) => `${k}: ${v}`).join(', '),
+      );
+    }
+
     let newMappings = mappings.filter(
         (m) =>
           user.Membership?.includes(m.Membership) || user.OtherMemberships?.includes(m.Membership),

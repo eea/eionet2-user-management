@@ -32,6 +32,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningIcon from '@mui/icons-material/Warning';
 import ClearIcon from '@mui/icons-material/Clear';
 import PersonRemove from '@mui/icons-material/PersonRemoveAlt1';
+import ContactsIcon from '@mui/icons-material/Contacts';
 
 import { UserEdit } from './UserEdit';
 import { UserInvite } from './UserInvite';
@@ -40,7 +41,13 @@ import DeleteDialog from './DeleteDialog';
 import ResizableGrid from './ResizableGrid';
 import { HtmlBox } from './HtmlBox';
 
+import { useAppInsightsContext, useTrackEvent } from '@microsoft/applicationinsights-react-js';
+
 export function UserList({ userInfo }) {
+  const appInsights = useAppInsightsContext();
+  const trackLoad = useTrackEvent(appInsights, 'LoadUsers'),
+    trackOpenUser = useTrackEvent(appInsights, 'OpenUser');
+
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
   const [users, setUsers] = useState([]),
     [filteredUsers, setFilteredUsers] = useState([]),
@@ -91,6 +98,7 @@ export function UserList({ userInfo }) {
                         user.FirstName = userDetails.givenName;
                         user.LastName = userDetails.surname;
                         setSelectedUser(user);
+                        trackOpenUser();
                         setFormVisible(true);
                       }
                     }
@@ -214,17 +222,20 @@ export function UserList({ userInfo }) {
     },
     renderMembershipTags = (params) => {
       let index = 0,
+        row = params.row,
         allMemberships = [];
 
-      params.row.Membership?.forEach((m) => allMemberships.push(m));
-      params.row.OtherMemberships?.forEach((m) => allMemberships.push(m));
-      params.row.NFP && allMemberships.push(params.row.NFP);
+      row.Membership?.forEach((m) => allMemberships.push(m));
+      row.OtherMemberships?.forEach((m) => allMemberships.push(m));
+      row.NFP && allMemberships.push(row.NFP);
       return (
         <Tooltip title={allMemberships.join(', ') || ''} arrow>
           <div id="test">
-            {allMemberships.map((m) => (
-              <Chip key={index++} label={m} />
-            ))}
+            {allMemberships.map((m) => {
+              return (
+                <Chip icon={row.PCP?.includes(m) && <ContactsIcon />} key={index++} label={m} />
+              );
+            })}
           </div>
         </Tooltip>
       );
@@ -303,13 +314,26 @@ export function UserList({ userInfo }) {
                 u.Title?.toLowerCase().includes(value.toLowerCase()) ||
                 u.NFP?.toLowerCase().includes(value.toLowerCase()) ||
                 u.Membership?.some((m) => m.toLowerCase().includes(value.toLowerCase())) ||
-                u.OtherMemberships?.some((m) => m.toLowerCase().includes(value.toLowerCase()))
+                u.OtherMemberships?.some((m) => m.toLowerCase().includes(value.toLowerCase())) ||
+                u.JobTitle?.toLowerCase().includes(value.toLowerCase()) ||
+                u.Department?.toLowerCase().includes(value.toLowerCase())
               );
             }),
           ),
           50,
         );
       }
+    },
+    checkPCP = (user) => {
+      const result = [
+        ...new Set(
+          (user.PCP || []).filter(
+            (pcpGroup) =>
+              users.filter((u) => u.Email != user.Email && u.PCP?.includes(pcpGroup)).length > 0,
+          ),
+        ),
+      ];
+      return result;
     };
 
   const columns = [
@@ -324,6 +348,8 @@ export function UserList({ userInfo }) {
     },
     { field: 'Country', headerName: 'Country', flex: 0.15, hide: isMobile },
     { field: 'Organisation', headerName: 'Organisation', flex: 0.65, hide: isMobile },
+    { field: 'Department', headerName: 'Department', flex: 0.65, hide: isMobile },
+    { field: 'JobTitle', headerName: 'Job title', flex: 0.65, hide: true },
     {
       field: 'SignedIn',
       headerName: 'Signed In',
@@ -359,6 +385,7 @@ export function UserList({ userInfo }) {
       !!loadedConfiguration.UserManagementVersion &&
         setVersionDialogOpen(loadedConfiguration.UserManagementVersion != version);
       setloading(false);
+      trackLoad();
     })();
   }, []);
 
@@ -543,6 +570,7 @@ export function UserList({ userInfo }) {
               newYN={false}
               userInfo={userInfo}
               configuration={configuration}
+              checkPCP={checkPCP}
             ></UserEdit>
           </div>
         </Dialog>
@@ -562,7 +590,12 @@ export function UserList({ userInfo }) {
             </IconButton>
           </DialogTitle>
           <div className="page-padding">
-            <UserInvite userInfo={userInfo} refreshList={refreshList} configuration={configuration}>
+            <UserInvite
+              userInfo={userInfo}
+              refreshList={refreshList}
+              configuration={configuration}
+              checkPCP={checkPCP}
+            >
               {' '}
             </UserInvite>
           </div>

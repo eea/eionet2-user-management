@@ -11,7 +11,6 @@ import {
   TextField,
   Autocomplete,
   Button,
-  FormLabel,
   CircularProgress,
   Backdrop,
   Link,
@@ -24,8 +23,23 @@ import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import SendIcon from '@mui/icons-material/Send';
 
-export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo, configuration }) {
+import { useAppInsightsContext, useTrackEvent } from '@microsoft/applicationinsights-react-js';
+import SwitchChip from './SwitchChip';
+
+export function UserEdit({
+  userEntity,
+  refreshRow,
+  saveFunction,
+  newYN,
+  userInfo,
+  configuration,
+  checkPCP,
+}) {
+  const appInsights = useAppInsightsContext();
+
   const user = useRef(JSON.parse(JSON.stringify(userEntity))).current;
+
+  const trackUser = useTrackEvent(appInsights, 'UserEdit', user);
 
   const [loading, setLoading] = useState(false),
     [dataFetching, setDataFetching] = useState(false),
@@ -33,6 +47,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
     [resendSuccess, setResendSuccess] = useState(false),
     [oldValues, setOldValues] = useState(JSON.parse(JSON.stringify(user))),
     [warningText, setWarningText] = useState(''),
+    [pcps, setPcps] = useState(user.PCP || []),
     [eeaNominated, setEeaNominated] = useState(userEntity.EEANominated);
 
   const [errors, setErrors] = useState({});
@@ -64,6 +79,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
           validateMembership()
         ) {
           setLoading(true);
+          user.PCP = pcps;
           switch (buttonId) {
             case 'submitNew': {
               setSuccess(false);
@@ -104,8 +120,9 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               break;
             }
           }
-
+          setPcps(user.PCP);
           setLoading(false);
+          trackUser();
         }
       }
     },
@@ -181,6 +198,21 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
       }
       setErrors({ ...tempErrors });
       return tempErrors;
+    },
+    onPCPChange = (value, option) => {
+      !pcps && setPcps([]);
+      if (value) {
+        pcps.push(option);
+      } else {
+        const index = pcps.indexOf(option);
+        index >= 0 && pcps.splice(index, 1);
+      }
+      const result = checkPCP && checkPCP(user, option);
+      if (result.length) {
+        setWarningText(`${configuration.PcpValidationMessage} ${result.join(', ')}`);
+      } else {
+        setWarningText('');
+      }
     };
 
   useEffect(() => {
@@ -288,6 +320,21 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               helperText={errors?.lastName}
               onBlur={validateField}
             />
+            <TextField
+              autoComplete="off"
+              className="control"
+              id="jobTitle"
+              label="Job title"
+              variant="outlined"
+              value={user.JobTitle}
+              onChange={(e) => {
+                user.JobTitle = e.target.value;
+                validateField(e);
+              }}
+              inputProps={{ style: { textTransform: 'capitalize' } }}
+            />
+          </div>
+          <div className="row">
             <Autocomplete
               ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
               disabled={userInfo.isNFP || userInfo.isGuest}
@@ -315,8 +362,6 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 />
               )}
             />
-          </div>
-          <div className="row">
             <TextField
               autoComplete="off"
               className="control"
@@ -343,7 +388,8 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
               label="Email"
               variant="outlined"
             />
-
+          </div>
+          <div className="row">
             <Autocomplete
               id="organisation"
               ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
@@ -379,8 +425,18 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 />
               )}
             />
-          </div>
-          <div className="row">
+            <TextField
+              autoComplete="off"
+              className="control"
+              id="department"
+              label="Department"
+              variant="outlined"
+              defaultValue={user.Department}
+              onChange={(e) => {
+                user.Department = e.target.value;
+              }}
+            />
+
             {userInfo.isNFP && (
               <Autocomplete
                 ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
@@ -393,6 +449,17 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 getOptionLabel={(option) => option || ''}
                 onChange={(_e, value) => {
                   user.Membership = value;
+                }}
+                renderTags={(tagValue, getTagProps) => {
+                  return tagValue.map((option, index) => (
+                    <SwitchChip
+                      {...getTagProps({ index })}
+                      key={index}
+                      chipValue={option}
+                      switchChecked={pcps?.includes(option)}
+                      onSwitchChange={onPCPChange}
+                    />
+                  ));
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -426,6 +493,17 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   !eeaNominatedVisible && (user.EEANominated = false);
                   setEeaNominated(user.EEANominated);
                 }}
+                renderTags={(tagValue, getTagProps) => {
+                  return tagValue.map((option, index) => (
+                    <SwitchChip
+                      {...getTagProps({ index })}
+                      key={index}
+                      chipValue={option}
+                      switchChecked={pcps?.includes(option)}
+                      onSwitchChange={onPCPChange}
+                    />
+                  ));
+                }}
                 renderInput={(params) => (
                   <TextField
                     className="control"
@@ -437,6 +515,8 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 )}
               />
             )}
+          </div>
+          <div className="row">
             {userInfo.isAdmin && (
               <Autocomplete
                 ListboxProps={{ style: { maxHeight: '15rem' }, position: 'bottom-start' }}
@@ -461,6 +541,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 )}
               />
             )}
+
             {userInfo.isAdmin && (
               <Autocomplete
                 id="nfp"
@@ -480,6 +561,25 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   />
                 )}
               />
+            )}
+            {showEEANominted && (
+              <Tooltip title={configuration.EEANominatedTooltip}>
+                <FormControlLabel
+                  sx={{ marginLeft: '0.1rem' }}
+                  control={
+                    <Checkbox
+                      checked={eeaNominated}
+                      onChange={(e) => {
+                        const value = e.target.checked;
+                        setEeaNominated(value);
+                        user.EEANominated = value;
+                      }}
+                      inputProps={{ 'aria-label': 'controlled' }}
+                    ></Checkbox>
+                  }
+                  label="Nominated by EEA"
+                ></FormControlLabel>
+              </Tooltip>
             )}
           </div>
           <div className="row">
@@ -504,26 +604,14 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 onBlur={validateField}
               />
             )}
-            {showEEANominted && (
-              <Tooltip title={configuration.EEANominatedTooltip}>
-                <FormControlLabel
-                  sx={{ marginLeft: '0.1rem' }}
-                  control={
-                    <Checkbox
-                      checked={eeaNominated}
-                      onChange={(e) => {
-                        const value = e.target.checked;
-                        setEeaNominated(value);
-                        user.EEANominated = value;
-                      }}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    ></Checkbox>
-                  }
-                  label="Nominated by EEA"
-                ></FormControlLabel>
-              </Tooltip>
-            )}
           </div>
+          {warningText && (
+            <div className="row">
+              <Alert sx={{ fontWeight: 'bold' }} severity="error" className="note-label warning">
+                {warningText}
+              </Alert>
+            </div>
+          )}
           {!newYN && !user.SignedIn && user.LastInvitationDate && (
             <div className="row">
               <Alert sx={{ fontWeight: 'bold' }} severity="warning" className="note-label warning">
@@ -543,7 +631,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading || (newYN && success)}
+                  disabled={loading || (newYN && success) || warningText}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   {success ? 'Saved and invitation sent' : 'Save and send invitation'}
@@ -557,7 +645,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading}
+                  disabled={loading || warningText}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   Update user
@@ -572,7 +660,7 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                   size="medium"
                   style={{ marginLeft: 16 }}
                   className="button"
-                  disabled={loading}
+                  disabled={loading || warningText}
                   endIcon={resendSuccess ? <CheckIcon /> : <SendIcon />}
                 >
                   {' '}
@@ -592,21 +680,17 @@ export function UserEdit({ userEntity, refreshRow, saveFunction, newYN, userInfo
                 />
               )}
             </Box>
-            {warningText && (
-              <FormLabel className="note-label warning" error>
-                {warningText}
-              </FormLabel>
-            )}
           </div>
+
           {!newYN && (
             <div className="row">
-              <FormLabel className="note-label control">
+              <Alert className="note-label warning" severity="info">
                 Note: If the email or other details needs to be changed, kindly contact{' '}
                 <Link className="mail-link" href="mailto:helpdesk@eea.europa.eu">
                   EEA Helpdesk
                 </Link>
                 .
-              </FormLabel>
+              </Alert>
             </div>
           )}
         </Box>

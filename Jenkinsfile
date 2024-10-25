@@ -5,7 +5,7 @@ pipeline {
   environment {
             GIT_NAME = "eionet2-user-management"
             SONARQUBE_TAGS = "eionet2"
-            PATH = "${tool 'NodeJS'}/bin:${tool 'SonarQubeScanner'}/bin:$PATH"
+            PATH = "${tool 'NodeJS16'}/bin:${tool 'SonarQubeScanner'}/bin:$PATH"
  }
   stages{         
 
@@ -37,7 +37,7 @@ pipeline {
       steps {
                       script{
                          checkout scm                         
-                         tool 'NodeJS'
+                         tool 'NodeJS16'
                          tool 'SonarQubeScanner'
                          sh "cd tabs; yarn cache clean; yarn install"  
                        }

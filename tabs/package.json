@@ -1,12 +1,13 @@
 {
   "name": "@eeacms/eionet2-user-management",
-  "version": "1.2.8",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "Teams app for managing Eionet users.",
   "dependencies": {
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
     "@fluentui/react-northstar": "^0.54.0",
+    "@microsoft/applicationinsights-react-js": "^17.2.0",
     "@microsoft/teams-js": "^1.9.0",
     "@microsoft/teamsfx": "^0.5.0",
     "@mui/icons-material": "^5.5.1",
@@ -26,6 +27,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "@microsoft/applicationinsights-web": "^3.2.1",
     "cross-env": "^7.0.3",
     "env-cmd": "^10.1.0",
     "eslint": "^8.17.0",
