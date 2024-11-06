@@ -184,7 +184,7 @@ export async function checkPCP(userData) {
         const users = result.value;
         userData.PCP.forEach((pcpValue) => {
           const existing = users.find(
-            (u) => u.fields.PCP.includes(pcpValue) && u.fields.Email != userData.Email,
+            (u) => u.fields.PCP?.includes(pcpValue) && u.fields.Email != userData.Email,
           );
           existing && (duplicates[pcpValue] = existing.fields.Email);
         });
