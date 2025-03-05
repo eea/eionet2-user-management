@@ -346,27 +346,23 @@ export async function removeUser(user) {
       config = await getConfiguration();
 
     if (user.ADUserId) {
-      try {
-        let filteredMappings = mappings.filter(
-            (m) =>
-              user.Membership?.includes(m.Membership) ||
-              user.OtherMemberships?.includes(m.Membership),
-          ),
-          groups = getDistinctGroupsIds(filteredMappings);
+      let filteredMappings = mappings.filter(
+          (m) =>
+            user.Membership?.includes(m.Membership) ||
+            user.OtherMemberships?.includes(m.Membership),
+        ),
+        groups = getDistinctGroupsIds(filteredMappings);
 
-        for (const groupId of groups) {
-          await deleteUserGroup(groupId, user.ADUserId, user.Email);
+      for (const groupId of groups) {
+        await deleteUserGroup(groupId, user.ADUserId, user.Email);
+      }
+
+      if (user.NFP) {
+        await deleteUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
+
+        if (!groups.length) {
+          await deleteUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
         }
-
-        if (user.NFP) {
-          await deleteUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
-
-          if (!groups.length) {
-            await deleteUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
-          }
-        }
-      } catch (err) {
-        return wrapError(err, messages.UserDelete.Errors.Groups);
       }
 
       const apiPath = '/users/' + user.ADUserId;
@@ -377,7 +373,18 @@ export async function removeUser(user) {
           country: null,
         });
       } catch (err) {
-        return wrapError(err, messages.UserDelete.Errors.ADUser);
+        //User not found in Entra. Flow should continue.
+        if (err.response?.data?.error?.statusCode != 404) {
+          return wrapError(err, messages.UserDelete.Errors.ADUser);
+        } else {
+          logInfo(
+            'User not found in Entra during removal: ' + user.Email,
+            '',
+            user,
+            'Remove user',
+            user.Email,
+          );
+        }
       }
     }
 

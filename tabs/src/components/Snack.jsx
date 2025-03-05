@@ -1,10 +1,10 @@
 import { React } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 
-export default function Snack({ snackbarOpen, message, onClose }) {
+export default function Snack({ open, message, onClose }) {
   return (
     <Snackbar
-      open={snackbarOpen}
+      open={open}
       anchorOrigin={{
         vertical: 'top',
         horizontal: 'center',
