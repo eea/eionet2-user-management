@@ -123,8 +123,8 @@ export function UserList({ userInfo }) {
                       const userDetails = await getUser(user.ADUserId),
                         groupsString = await getUserGroups(user.ADUserId);
 
-                      user.FirstName = userDetails.givenName;
-                      user.LastName = userDetails.surname;
+                      user.FirstName = userDetails?.givenName;
+                      user.LastName = userDetails?.surname;
                       user.groupsString = groupsString;
                     }
                     setSelectedUser(user);
@@ -148,8 +148,8 @@ export function UserList({ userInfo }) {
                       const userDetails = await getUser(user.ADUserId),
                         groupsString = await getUserGroups(user.ADUserId);
 
-                      user.FirstName = userDetails.givenName;
-                      user.LastName = userDetails.surname;
+                      user.FirstName = userDetails?.givenName;
+                      user.LastName = userDetails?.surname;
                       user.groupsString = groupsString;
                     }
                     setSelectedUser(user);
@@ -177,7 +177,7 @@ export function UserList({ userInfo }) {
       let result = await removeUser(selectedUser);
       await refreshList();
       setloading(false);
-      setSnackbarMessage('Success. User removed from Eionet&lsquo;s workspace.');
+      setSnackbarMessage("Success. User removed from Eionet's workspace.");
       setSnackbarOpen(result.Success);
     },
     handleDeleteNo = () => {
@@ -189,7 +189,7 @@ export function UserList({ userInfo }) {
       let result = await removeUserMemberships(selectedUser);
       await refreshList();
       setloading(false);
-      setSnackbarMessage('Success. User&lsquo;s Eionet memberships removed.');
+      setSnackbarMessage("Success. User's Eionet memberships removed.");
       setSnackbarOpen(result.Success);
     },
     handleDeleteMembershipNo = () => {
