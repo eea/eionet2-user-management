@@ -221,8 +221,7 @@ export function UserList({ userInfo }) {
       );
     },
     renderMembershipTags = (params) => {
-      let index = 0,
-        row = params.row,
+      let row = params.row,
         allMemberships = [];
 
       row.Membership?.forEach((m) => allMemberships.push(m));
@@ -231,9 +230,13 @@ export function UserList({ userInfo }) {
       return (
         <Tooltip title={allMemberships.join(', ') || ''} arrow>
           <div id="test">
-            {allMemberships.map((m) => {
+            {allMemberships.map((m, idx) => {
               return (
-                <Chip icon={row.PCP?.includes(m) && <ContactsIcon />} key={index++} label={m} />
+                <Chip
+                  icon={row.PCP?.includes(m) ? <ContactsIcon /> : undefined}
+                  key={`${m}-${idx}`}
+                  label={m}
+                />
               );
             })}
           </div>

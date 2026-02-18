@@ -3,11 +3,21 @@ param provisionParameters object
 param userAssignedIdentityId string
 
 var resourceBaseName = provisionParameters.resourceBaseName
-var serverfarmsName = contains(provisionParameters, 'functionServerfarmsName') ? provisionParameters['functionServerfarmsName'] : '${resourceBaseName}api' // Try to read name for App Service Plan from parameters
-var serverfarmsSku = contains(provisionParameters, 'functionServerfarmsSku') ? provisionParameters['functionServerfarmsSku'] : 'Y1' // Try to read SKU for App Service Plan from parameters
-var functionAppName = contains(provisionParameters, 'functionWebappName') ? provisionParameters['functionWebappName'] : '${resourceBaseName}api' // Try to read name for Azure Functions from parameters
-var storageName = contains(provisionParameters, 'functionStorageName') ? provisionParameters['functionStorageName'] : '${resourceBaseName}api' // Try to read name for Azure Storage from parameters
-var storageSku = contains(provisionParameters, 'functionStorageSku') ? provisionParameters['functionStorageSku'] : 'Standard_LRS' // Try to read SKU for Azure Storage from parameters
+var serverfarmsName = contains(provisionParameters, 'functionServerfarmsName')
+  ? provisionParameters['functionServerfarmsName']
+  : '${resourceBaseName}api' // Try to read name for App Service Plan from parameters
+var serverfarmsSku = contains(provisionParameters, 'functionServerfarmsSku')
+  ? provisionParameters['functionServerfarmsSku']
+  : 'Y1' // Try to read SKU for App Service Plan from parameters
+var functionAppName = contains(provisionParameters, 'functionWebappName')
+  ? provisionParameters['functionWebappName']
+  : '${resourceBaseName}api' // Try to read name for Azure Functions from parameters
+var storageName = contains(provisionParameters, 'functionStorageName')
+  ? provisionParameters['functionStorageName']
+  : '${resourceBaseName}api' // Try to read name for Azure Storage from parameters
+var storageSku = contains(provisionParameters, 'functionStorageSku')
+  ? provisionParameters['functionStorageSku']
+  : 'Standard_LRS' // Try to read SKU for Azure Storage from parameters
 
 // Compute resources for Azure Functions
 resource serverfarms 'Microsoft.Web/serverfarms@2021-02-01' = {
@@ -55,7 +65,7 @@ resource functionApp 'Microsoft.Web/sites@2021-02-01' = {
         }
         {
           name: 'WEBSITE_NODE_DEFAULT_VERSION'
-          value: '~14' // Set NodeJS version to 14.x
+          value: '~24' // Set NodeJS version to 14.x
         }
       ]
     }

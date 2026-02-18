@@ -4,8 +4,7 @@
 }
 
 body {
-  margin: 5em;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto Flex', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #eeeeee;

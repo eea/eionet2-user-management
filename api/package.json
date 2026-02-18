@@ -8,7 +8,9 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
-        "@microsoft/teamsfx": "^0.5.0",
+        "@azure/msal-node": "^2.16.0",
+        "@microsoft/microsoft-graph-client": "^3.0.7",
+        "axios": "^1.11.0",
         "isomorphic-fetch": "^3.0.0"
     },
     "devDependencies": {
