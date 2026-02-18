@@ -1,4 +1,4 @@
-@import '../variables.scss';
+@use '../variables.scss' as vars;
 
 .narrow {
   max-width: 900px;
@@ -116,7 +116,7 @@ code {
 .search-box {
   width: 50%;
 
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get(vars.$breakpoints, md)) {
     width: 80%;
   }
 }
@@ -131,4 +131,10 @@ code {
 
 .grid-text {
   font-size: 14px !important;
+}
+
+.MuiDataGrid-cell {
+  display: flex !important;
+  align-items: center !important;
+  /* vertical center */
 }

@@ -1,4 +1,4 @@
-@import '../variables.scss';
+@use '../variables.scss' as vars;
 
 .narrow {
   max-width: 900px;
@@ -101,13 +101,13 @@ code {
 }
 
 .user-invite {
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get(vars.$breakpoints, md)) {
     min-width: 500px;
   }
 }
 
 .invite-input {
-  @media (max-width: map-get($breakpoints, md)) {
+  @media (max-width: map-get(vars.$breakpoints, md)) {
     align-self: center;
   }
 }

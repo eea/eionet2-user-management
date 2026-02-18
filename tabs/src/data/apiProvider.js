@@ -1,18 +1,23 @@
-import { TeamsUserCredential, getResourceConfiguration, ResourceType } from '@microsoft/teamsfx';
+import { app, authentication } from '@microsoft/teams-js';
 import * as axios from 'axios';
 import * as constants from './constants';
+
+async function getAccessToken() {
+  await app.initialize();
+  return authentication.getAuthToken();
+}
 
 async function callApiFunction(command, method, options, params) {
   let message = [];
 
-  const credential = new TeamsUserCredential();
-  const accessToken = await credential.getToken('');
-  const apiConfig = getResourceConfiguration(ResourceType.API);
+  const accessToken = await getAccessToken();
+  const endpoint = process.env.REACT_APP_FUNC_ENDPOINT;
+
   const response = await axios.default.request({
     method: method,
-    url: apiConfig.endpoint + '/api/' + command,
+    url: endpoint + '/api/' + command,
     headers: {
-      authorization: 'Bearer ' + accessToken.token,
+      authorization: 'Bearer ' + accessToken,
     },
     data: options,
     params,
@@ -22,52 +27,61 @@ async function callApiFunction(command, method, options, params) {
   return message;
 }
 
-export async function apiGet(path, credentialType = 'app') {
+export async function apiGet(path, credentialType = 'app', skipLog) {
   try {
-    return await callApiFunction(constants.API_FUNCTION, 'get', undefined, {
+    return await callApiFunction('graphData', 'get', undefined, {
       path: path,
       credentialType: credentialType,
     });
   } catch (err) {
-    logError(err, path, null);
+    if (!skipLog && !err?.requiresLogin) {
+      logError(err, path, {});
+    }
     throw err;
   }
 }
 
 export async function apiPost(path, data, credentialType = 'app', skipLog) {
   try {
-    return await callApiFunction(constants.API_FUNCTION, 'post', {
+    return await callApiFunction('graphData', 'post', {
       credentialType: credentialType,
       data: data,
       path: path,
     });
   } catch (err) {
-    !skipLog && logError(err, path, data);
+    if (!skipLog && !err?.requiresLogin) {
+      logError(err, path, {});
+    }
     throw err;
   }
 }
 
-export async function apiPatch(path, data, credentialType = 'app') {
+export async function apiPatch(path, data, eTag = undefined, credentialType = 'app') {
   try {
-    return await callApiFunction(constants.API_FUNCTION, 'patch', {
+    return await callApiFunction('graphData', 'patch', {
       credentialType: credentialType,
       data: data,
       path: path,
+      ...(eTag && { eTag: eTag }),
     });
   } catch (err) {
-    logError(err, path, data);
+    if (!err?.requiresLogin) {
+      logError(err, path, data);
+    }
     throw err;
   }
 }
 
 export async function apiDelete(path, credentialType = 'app') {
   try {
-    return await callApiFunction(constants.API_FUNCTION, 'delete', {
+    return await callApiFunction('graphData', 'delete', {
       credentialType: credentialType,
       path: path,
     });
   } catch (err) {
-    logError(err, path, null);
+    if (!err?.requiresLogin) {
+      logError(err, path, null);
+    }
     throw err;
   }
 }
@@ -110,14 +124,19 @@ export async function getConfiguration() {
 export async function logError(err, apiPath, data) {
   const userMail = await getUserMail();
 
-  const title = err.response?.data?.error?.body || err.message;
+  let title = err.response?.data?.error?.body || err.message;
+
+  //missing index error
+  if (err.response?.data?.message?.includes('HonorNonIndexedQueriesWarningMayFailRandomly')) {
+    title = err.response?.data?.message;
+  }
 
   let fields = {
     fields: {
       ApplicationName: constants.APPLICATION_NAME,
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
-      Title: title?.substring(0, 255),
+      Title: title,
       UserMail: userMail,
       Timestamp: new Date(),
       Logtype: 'Error',
@@ -136,7 +155,7 @@ export async function logError(err, apiPath, data) {
   }
 }
 
-export async function logInfo(message, apiPath, data, action, affectedUser) {
+export async function logInfo(message, apiPath, data, action, affectedUser, skipEmail = false) {
   const spConfig = await getConfiguration(),
     userMail = await getUserMail();
 
@@ -146,7 +165,7 @@ export async function logInfo(message, apiPath, data, action, affectedUser) {
       ApiPath: apiPath,
       ApiData: JSON.stringify(data),
       Title: message,
-      UserMail: userMail,
+      UserMail: skipEmail ? '' : userMail,
       Timestamp: new Date(),
       Logtype: 'Info',
       Action: action,

@@ -1,4 +1,4 @@
-@import '../variables.scss';
+@use '../variables.scss' as vars;
 
 .narrow {
   max-width: 900px;
@@ -70,7 +70,7 @@ code {
   display: flex;
   flex-direction: row;
 
-  @media (max-width: map-get($breakpoints, lg)) {
+  @media (max-width: map-get(vars.$breakpoints, lg)) {
     flex-direction: column;
   }
 }
@@ -78,13 +78,13 @@ code {
 .control {
   margin: 0.35rem;
 
-  @media (max-width: map-get($breakpoints, lg)) {
+  @media (max-width: map-get(vars.$breakpoints, lg)) {
     width: 100% !important;
   }
 }
 
 .edit-user {
-  @media (max-width: map-get($breakpoints, lg)) {
+  @media (max-width: map-get(vars.$breakpoints, lg)) {
     width: 95%;
   }
 }
@@ -107,13 +107,13 @@ code {
 .small-width {
   width: 25% !important;
 
-  @media (max-width: map-get($breakpoints, lg)) {
+  @media (max-width: map-get(vars.$breakpoints, lg)) {
     width: 100% !important;
   }
 
   min-width: 150px !important;
 
-  @media (max-width: map-get($breakpoints, lg)) {
+  @media (max-width: map-get(vars.$breakpoints, lg)) {
     min-width: 0px !important;
   }
 }
