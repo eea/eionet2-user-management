@@ -101,6 +101,5 @@
     ]
   },
   "lint": "eslint .",
-  "homepage": ".",
-  "packageManager": "npm@11.6.2"
+  "homepage": "."
 }
