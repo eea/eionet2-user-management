@@ -21,7 +21,6 @@ if (typeof global.fetch === 'undefined') {
   );
 
   global.fetch = fetchMock;
-  globalThis.fetch = fetchMock;
 
   if (typeof window !== 'undefined') {
     window.fetch = fetchMock;

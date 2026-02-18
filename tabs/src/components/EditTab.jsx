@@ -89,7 +89,7 @@ export default function EditTab() {
           {userInfo.isLoaded && !userInfo.isGuest && (
             <UserList showFunction={showFunction} userInfo={userInfo} />
           )}
-          {((!userInfo.isLoaded || userInfo.isGuest) && (
+          {(!userInfo.isLoaded || userInfo.isGuest) && (
             <div
               style={{
                 height: '100%',
@@ -100,7 +100,7 @@ export default function EditTab() {
             >
               <HtmlBox html={configuration?.UserManagementRestrictedMessage}></HtmlBox>
             </div>
-          ))}
+          )}
           <Typography
             sx={{ position: 'absolute', bottom: '0', left: '0', width: '100%', zIndex: 1 }}
           >

@@ -18,9 +18,15 @@ describe('validator', () => {
     });
 
     test('should return error message for invalid phone numbers', () => {
-      expect(validator.validatePhone('abc123')).toBe('Only numbers and characters +, -, . are allowed.');
-      expect(validator.validatePhone('123@456')).toBe('Only numbers and characters +, -, . are allowed.');
-      expect(validator.validatePhone('123#456')).toBe('Only numbers and characters +, -, . are allowed.');
+      expect(validator.validatePhone('abc123')).toBe(
+        'Only numbers and characters +, -, . are allowed.',
+      );
+      expect(validator.validatePhone('123@456')).toBe(
+        'Only numbers and characters +, -, . are allowed.',
+      );
+      expect(validator.validatePhone('123#456')).toBe(
+        'Only numbers and characters +, -, . are allowed.',
+      );
     });
 
     test('should return undefined for empty or null values', () => {

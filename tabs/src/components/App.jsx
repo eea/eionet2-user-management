@@ -1,11 +1,6 @@
 import React from 'react';
 // https://fluentsite.z22.web.core.windows.net/quick-start
-import {
-  FluentProvider,
-  teamsLightTheme,
-  Spinner,
-  Text,
-} from '@fluentui/react-components';
+import { FluentProvider, teamsLightTheme, Spinner, Text } from '@fluentui/react-components';
 import { HashRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useTeamsAuth } from './lib/useTeamsAuth';
 import Privacy from './Privacy';
