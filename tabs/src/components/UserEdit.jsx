@@ -631,7 +631,7 @@ export function UserEdit({
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading || (newYN && success) || warningText}
+                  disabled={loading || (newYN && success) || Boolean(warningText)}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   {success ? 'Saved and invitation sent' : 'Save and send invitation'}
@@ -645,7 +645,7 @@ export function UserEdit({
                   color="secondary"
                   size="medium"
                   className="button"
-                  disabled={loading || warningText}
+                  disabled={loading || Boolean(warningText)}
                   endIcon={success ? <CheckIcon /> : <SaveIcon />}
                 >
                   Update user
@@ -660,7 +660,7 @@ export function UserEdit({
                   size="medium"
                   style={{ marginLeft: 16 }}
                   className="button"
-                  disabled={loading || warningText}
+                  disabled={loading || Boolean(warningText)}
                   endIcon={resendSuccess ? <CheckIcon /> : <SendIcon />}
                 >
                   {' '}
