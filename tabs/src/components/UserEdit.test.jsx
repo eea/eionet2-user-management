@@ -28,11 +28,17 @@ jest.mock('@microsoft/applicationinsights-react-js', () => ({
   useTrackEvent: jest.fn(() => jest.fn()),
 }));
 
-jest.mock('./SwitchChip', () => (props) => (
-  <div data-testid="switch-chip" data-chip-value={props.chipValue}>
-    {props.chipValue}
-  </div>
-));
+jest.mock('./SwitchChip', () => {
+  function MockSwitchChip(props) {
+    return (
+      <div data-testid="switch-chip" data-chip-value={props.chipValue}>
+        {props.chipValue}
+      </div>
+    );
+  }
+
+  return MockSwitchChip;
+});
 
 const sharepointProvider = require('../data/sharepointProvider');
 const configurationProvider = require('../data/configurationProvider');

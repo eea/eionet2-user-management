@@ -48,47 +48,59 @@ jest.mock('./UserInvite', () => ({
   ),
 }));
 
-jest.mock('./Snack', () => (props) => (
-  <div data-testid="snack" data-open={String(props.open)}>
-    {props.message}
-  </div>
-));
+jest.mock('./Snack', () => {
+  function MockSnack(props) {
+    return (
+      <div data-testid="snack" data-open={String(props.open)}>
+        {props.message}
+      </div>
+    );
+  }
 
-jest.mock(
-  './DeleteDialog',
-  () => (props) =>
-    props.open ? (
+  return MockSnack;
+});
+
+jest.mock('./DeleteDialog', () => {
+  function MockDeleteDialog(props) {
+    return props.open ? (
       <div data-testid="delete-dialog">
         <div>{props.title}</div>
         <div>{typeof props.message === 'function' ? props.message() : props.message}</div>
         <button onClick={props.onYes}>Yes</button>
         <button onClick={props.onNo}>No</button>
       </div>
-    ) : null,
-);
+    ) : null;
+  }
 
-jest.mock('./ResizableGrid', () => (props) => {
-  const titleColumn = props.columns.find((column) => column.field === 'Title');
-  const membershipColumn = props.columns.find((column) => column.field === 'MembershipString');
-  const signedInColumn = props.columns.find((column) => column.field === 'SignedIn');
-  const editColumn = props.columns.find((column) => column.field === 'Edit');
+  return MockDeleteDialog;
+});
 
-  return (
-    <div
-      data-testid="resizable-grid"
-      data-rows={JSON.stringify(props.rows)}
-      data-columns-count={String(props.columns.length)}
-    >
-      {props.rows.map((row) => (
-        <div key={row.id} data-testid={`row-${row.id}`}>
-          <div data-testid={`title-${row.id}`}>{titleColumn.renderCell({ row })}</div>
-          <div data-testid={`membership-${row.id}`}>{membershipColumn.renderCell({ row })}</div>
-          <div data-testid={`signedin-${row.id}`}>{signedInColumn.renderCell({ row })}</div>
-          <div data-testid={`actions-${row.id}`}>{editColumn.renderCell({ row })}</div>
-        </div>
-      ))}
-    </div>
-  );
+jest.mock('./ResizableGrid', () => {
+  function MockResizableGrid(props) {
+    const titleColumn = props.columns.find((column) => column.field === 'Title');
+    const membershipColumn = props.columns.find((column) => column.field === 'MembershipString');
+    const signedInColumn = props.columns.find((column) => column.field === 'SignedIn');
+    const editColumn = props.columns.find((column) => column.field === 'Edit');
+
+    return (
+      <div
+        data-testid="resizable-grid"
+        data-rows={JSON.stringify(props.rows)}
+        data-columns-count={String(props.columns.length)}
+      >
+        {props.rows.map((row) => (
+          <div key={row.id} data-testid={`row-${row.id}`}>
+            <div data-testid={`title-${row.id}`}>{titleColumn.renderCell({ row })}</div>
+            <div data-testid={`membership-${row.id}`}>{membershipColumn.renderCell({ row })}</div>
+            <div data-testid={`signedin-${row.id}`}>{signedInColumn.renderCell({ row })}</div>
+            <div data-testid={`actions-${row.id}`}>{editColumn.renderCell({ row })}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return MockResizableGrid;
 });
 
 jest.mock('./HtmlBox', () => ({
