@@ -315,7 +315,14 @@ describe('apiProvider', () => {
     await provider.getConfiguration();
 
     await provider.logInfo('Created user', '/users', { id: 1 }, 'create', 'other@example.com');
-    await provider.logInfo('Created user', '/users', { id: 1 }, 'create', 'other@example.com', true);
+    await provider.logInfo(
+      'Created user',
+      '/users',
+      { id: 1 },
+      'create',
+      'other@example.com',
+      true,
+    );
 
     expect(requestMock).toHaveBeenNthCalledWith(
       3,
