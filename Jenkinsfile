@@ -31,7 +31,6 @@ pipeline {
         allOf {
           environment name: 'CHANGE_ID', value: ''
           not { changelog '.*^Automated release [0-9\\.]+$' }
-          not { branch 'master' }
         }
       }
       steps {
@@ -49,7 +48,6 @@ pipeline {
         allOf {
           environment name: 'CHANGE_ID', value: ''
           not { changelog '.*^Automated release [0-9\\.]+$' }
-          not { branch 'master' }
         }
       }
                  steps {
@@ -64,7 +62,6 @@ pipeline {
         allOf {
           environment name: 'CHANGE_ID', value: ''
           not { changelog '.*^Automated release [0-9\\.]+$' }
-          not { branch 'master' }
         }
       }
                  steps {   

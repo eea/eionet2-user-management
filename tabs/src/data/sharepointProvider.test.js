@@ -7,6 +7,7 @@ if (!String.prototype.replaceAll) {
 
 const apiProvider = require('./apiProvider');
 const provider = require('./sharepointProvider');
+const { sendOrgSuggestionNotification } = require('./notificationProvider');
 
 jest.mock('./apiProvider');
 jest.mock('./notificationProvider', () => ({
@@ -319,6 +320,42 @@ describe('sharepointProvider', () => {
       // The PCP array should be modified (some values may be removed)
       expect(Array.isArray(userData.PCP)).toBe(true);
     });
+
+    test('should remove PCP values outside membership and report duplicates', async () => {
+      const mockConfig = {
+        SharepointSiteId: 'test-site-id',
+        UserListId: 'test-user-list-id',
+      };
+
+      apiProvider.getConfiguration.mockResolvedValue(mockConfig);
+      apiProvider.apiGet.mockResolvedValue({
+        graphClientMessage: {
+          value: [
+            {
+              fields: {
+                Email: 'existing@example.com',
+                PCP: ['Member'],
+              },
+            },
+          ],
+        },
+      });
+
+      const userData = {
+        Country: 'USA',
+        Email: 'test@example.com',
+        Membership: ['Member'],
+        PCP: ['Member', 'OutsideMembership'],
+      };
+
+      const result = await provider.checkPCP(userData);
+
+      expect(userData.PCP).toEqual(['Member']);
+      expect(apiProvider.apiGet).toHaveBeenCalledWith(
+        "sites/test-site-id/lists/test-user-list-id/items?$filter=fields/Country eq 'USA'&$expand=fields",
+      );
+      expect(result).toEqual({ Member: 'existing@example.com' });
+    });
   });
 
   describe('saveSPUser', () => {
@@ -410,6 +447,247 @@ describe('sharepointProvider', () => {
           }),
         }),
       );
+    });
+
+    test('should send organisation suggestion notification for new users', async () => {
+      const mockConfig = {
+        SharepointSiteId: 'test-site-id',
+        UserListId: 'test-user-list-id',
+      };
+
+      apiProvider.getConfiguration.mockResolvedValue(mockConfig);
+      apiProvider.apiPost.mockResolvedValue({});
+
+      await provider.saveSPUser(
+        'user-id',
+        {
+          FirstName: 'John',
+          LastName: 'Doe',
+          Email: 'john@example.com',
+          Country: 'USA',
+          SuggestedOrganisation: 'New Org',
+        },
+        true,
+      );
+
+      expect(sendOrgSuggestionNotification).toHaveBeenCalledWith('New Org');
+    });
+
+    test('should notify only when suggested organisation changes on update', async () => {
+      const mockConfig = {
+        SharepointSiteId: 'test-site-id',
+        UserListId: 'test-user-list-id',
+      };
+
+      apiProvider.getConfiguration.mockResolvedValue(mockConfig);
+      apiProvider.apiPatch.mockResolvedValue({});
+
+      await provider.saveSPUser(
+        'user-id',
+        {
+          id: 'user-id',
+          FirstName: 'John',
+          LastName: 'Doe',
+          Email: 'john@example.com',
+          Country: 'USA',
+          SuggestedOrganisation: 'Changed Org',
+        },
+        false,
+        { SuggestedOrganisation: 'Old Org' },
+      );
+
+      await provider.saveSPUser(
+        'user-id',
+        {
+          id: 'user-id',
+          FirstName: 'John',
+          LastName: 'Doe',
+          Email: 'john@example.com',
+          Country: 'USA',
+          SuggestedOrganisation: 'Same Org',
+        },
+        false,
+        { SuggestedOrganisation: 'Same Org' },
+      );
+
+      expect(sendOrgSuggestionNotification).toHaveBeenCalledTimes(1);
+      expect(sendOrgSuggestionNotification).toHaveBeenCalledWith('Changed Org');
+    });
+  });
+
+  describe('getInvitedUsers', () => {
+    test('should paginate and flatten invited user data', async () => {
+      const mockConfig = {
+        SharepointSiteId: 'test-site-id',
+        UserListId: 'test-user-list-id',
+      };
+
+      apiProvider.getConfiguration.mockResolvedValue(mockConfig);
+      apiProvider.apiGet
+        .mockResolvedValueOnce({
+          graphClientMessage: {
+            value: [
+              {
+                id: 'org-1',
+                fields: { Title: 'Organisation A', Unspecified: false },
+              },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          graphClientMessage: {
+            value: [
+              {
+                createdDateTime: '2024-01-01T00:00:00Z',
+                fields: {
+                  Title: 'Jane Doe',
+                  Email: 'jane@example.com',
+                  Membership: ['Member'],
+                  OtherMemberships: ['Observer'],
+                  Country: 'RO',
+                  OrganisationLookupId: 'org-1',
+                  Phone: '123',
+                  ADUserId: 'ad-1',
+                  Gender: 'Female',
+                  NFP: 'NFP role',
+                  SignedIn: true,
+                  SuggestedOrganisation: 'Suggested Org',
+                  EEANominated: true,
+                  Department: 'IT',
+                  JobTitle: 'Analyst',
+                  PCP: ['Member'],
+                  id: 'item-1',
+                },
+              },
+            ],
+            '@odata.nextLink': 'next-page-url',
+          },
+        })
+        .mockResolvedValueOnce({
+          graphClientMessage: {
+            value: [
+              {
+                createdDateTime: '2024-01-02T00:00:00Z',
+                fields: {
+                  Title: 'John Doe',
+                  Email: 'john@example.com',
+                  Membership: [],
+                  Country: '',
+                  OrganisationLookupId: null,
+                  id: 'item-2',
+                },
+              },
+            ],
+          },
+        });
+
+      const result = await provider.getInvitedUsers({ isNFP: false });
+
+      expect(apiProvider.apiGet).toHaveBeenNthCalledWith(
+        2,
+        '/sites/test-site-id/lists/test-user-list-id/items?$expand=fields&$top=999',
+      );
+      expect(apiProvider.apiGet).toHaveBeenNthCalledWith(3, 'next-page-url');
+      expect(result).toEqual([
+        {
+          Title: 'Jane Doe',
+          Email: 'jane@example.com',
+          Membership: ['Member'],
+          MembershipString: 'Member,Observer,NFP role',
+          OtherMemberships: ['Observer'],
+          OtherMembershipsString: 'Observer',
+          Country: 'RO',
+          OrganisationLookupId: 'org-1',
+          Organisation: 'Organisation A',
+          Phone: '123',
+          ADUserId: 'ad-1',
+          Gender: 'Female',
+          GenderTitle: 'Female',
+          NFP: 'NFP role',
+          SignedIn: true,
+          SuggestedOrganisation: 'Suggested Org',
+          LastInvitationDate: '2024-01-01T00:00:00Z',
+          EEANominated: true,
+          Department: 'IT',
+          JobTitle: 'Analyst',
+          PCP: ['Member'],
+          id: 'item-1',
+        },
+        {
+          Title: 'John Doe',
+          Email: 'john@example.com',
+          Membership: [],
+          MembershipString: '',
+          OtherMemberships: undefined,
+          OtherMembershipsString: undefined,
+          Country: '',
+          OrganisationLookupId: null,
+          Organisation: '',
+          Phone: undefined,
+          ADUserId: undefined,
+          Gender: '',
+          GenderTitle: '',
+          NFP: undefined,
+          SignedIn: undefined,
+          SuggestedOrganisation: undefined,
+          LastInvitationDate: '2024-01-02T00:00:00Z',
+          EEANominated: false,
+          Department: undefined,
+          JobTitle: undefined,
+          PCP: undefined,
+          id: 'item-2',
+        },
+      ]);
+    });
+
+    test('should apply NFP filtering when requested', async () => {
+      const mockConfig = {
+        SharepointSiteId: 'test-site-id',
+        UserListId: 'test-user-list-id',
+      };
+
+      apiProvider.getConfiguration.mockResolvedValue(mockConfig);
+      apiProvider.apiGet
+        .mockResolvedValueOnce({
+          graphClientMessage: {
+            value: [],
+          },
+        })
+        .mockResolvedValueOnce({
+          graphClientMessage: {
+            value: [
+              {
+                createdDateTime: '2024-01-01T00:00:00Z',
+                fields: {
+                  Title: 'Member User',
+                  Email: 'member@example.com',
+                  Membership: ['Member'],
+                  Country: 'RO',
+                  id: '1',
+                },
+              },
+              {
+                createdDateTime: '2024-01-01T00:00:00Z',
+                fields: {
+                  Title: 'No Access User',
+                  Email: 'none@example.com',
+                  Membership: [],
+                  Country: 'RO',
+                  id: '2',
+                },
+              },
+            ],
+          },
+        });
+
+      const result = await provider.getInvitedUsers({ isNFP: true, country: 'RO' });
+
+      expect(apiProvider.apiGet).toHaveBeenNthCalledWith(
+        2,
+        "/sites/test-site-id/lists/test-user-list-id/items?$expand=fields&$top=999&$filter=fields/Country eq 'RO'",
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].Email).toBe('member@example.com');
     });
   });
 });
