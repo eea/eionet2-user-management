@@ -30,7 +30,10 @@ pipeline {
       when {
         allOf {
           environment name: 'CHANGE_ID', value: ''
-          not { changelog '.*^Automated release [0-9\\.]+$' }
+          anyOf {
+            branch 'master'
+            not { changelog '.*^Automated release [0-9\\.]+$' }
+          }
         }
       }
       steps {
@@ -47,7 +50,10 @@ pipeline {
         when {
         allOf {
           environment name: 'CHANGE_ID', value: ''
-          not { changelog '.*^Automated release [0-9\\.]+$' }
+          anyOf {
+            branch 'master'
+            not { changelog '.*^Automated release [0-9\\.]+$' }
+          }
         }
       }
                  steps {
@@ -61,7 +67,10 @@ pipeline {
       when {
         allOf {
           environment name: 'CHANGE_ID', value: ''
-          not { changelog '.*^Automated release [0-9\\.]+$' }
+          anyOf {
+            branch 'master'
+            not { changelog '.*^Automated release [0-9\\.]+$' }
+          }
         }
       }
                  steps {   
