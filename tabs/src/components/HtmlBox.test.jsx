@@ -2,12 +2,14 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { HtmlBox } from './HtmlBox';
 
-// Mock DOMPurify
+const registeredHooks = {};
 jest.mock('dompurify', () => ({
   __esModule: true,
   default: {
     sanitize: jest.fn((html) => html), // Return HTML as-is for testing
-    addHook: jest.fn(),
+    addHook: jest.fn((event, fn) => {
+      registeredHooks[event] = fn;
+    }),
   },
 }));
 
@@ -144,5 +146,31 @@ describe('HtmlBox Component', () => {
     expect(() => {
       render(<HtmlBox html={htmlWithForm} />);
     }).not.toThrow();
+  });
+
+  describe('afterSanitizeAttributes hook', () => {
+    test('should register the afterSanitizeAttributes hook', () => {
+      expect(registeredHooks.afterSanitizeAttributes).toBeDefined();
+      expect(typeof registeredHooks.afterSanitizeAttributes).toBe('function');
+    });
+
+    test('should set target=_blank and rel=noopener on nodes that own target', () => {
+      const setAttribute = jest.fn();
+      const node = { target: '', setAttribute };
+
+      registeredHooks.afterSanitizeAttributes(node);
+
+      expect(setAttribute).toHaveBeenCalledWith('target', '_blank');
+      expect(setAttribute).toHaveBeenCalledWith('rel', 'noopener');
+    });
+
+    test('should not modify nodes that do not own target', () => {
+      const setAttribute = jest.fn();
+      const node = { setAttribute };
+
+      registeredHooks.afterSanitizeAttributes(node);
+
+      expect(setAttribute).not.toHaveBeenCalled();
+    });
   });
 });

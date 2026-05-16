@@ -39,8 +39,7 @@ module.exports = async function (context, req) {
 
   const method = req.method.toLowerCase();
   const credentialType =
-    method !== "get" ? (req.body && req.body.credentialType) : req.query.credentialType;
-  const eTag = method == 'patch' ? req.body.eTag : undefined;
+    method !== "get" ? (req.body?.credentialType) : req.query.credentialType;
 
   const tenantId = process.env.M365_TENANT_ID;
   const clientId = process.env.M365_CLIENT_ID;

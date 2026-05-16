@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { act } from 'react';
 import EditTab from './EditTab';
 
 jest.mock('../data/configurationProvider', () => ({

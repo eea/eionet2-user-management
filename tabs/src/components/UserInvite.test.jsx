@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { act } from 'react';
 import { UserInvite } from './UserInvite';
 
 jest.mock('../data/provider', () => ({
