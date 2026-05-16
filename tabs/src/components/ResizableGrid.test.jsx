@@ -223,9 +223,7 @@ describe('ResizableGrid Component', () => {
 
     fireEvent.click(screen.getByTestId('custom-column-resize-icon'));
 
-    const after = JSON.parse(
-      screen.getByTestId('data-grid').getAttribute('data-columns'),
-    );
+    const after = JSON.parse(screen.getByTestId('data-grid').getAttribute('data-columns'));
     expect(after[0]).toMatchObject({ field: 'id', width: 200, flex: 0 });
     expect(after[1]).toMatchObject({ field: 'name', width: 200 });
   });
