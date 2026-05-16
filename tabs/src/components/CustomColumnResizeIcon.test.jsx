@@ -145,11 +145,11 @@ describe('CustomColumnResizeIcon Component', () => {
 
     afterEach(() => {
       jest.useRealTimers();
-      document.body.removeChild(columnHeader);
-      document.body.removeChild(cell);
+      columnHeader.remove();
+      cell.remove();
     });
 
-    test('should update widths and notify onWidthChanged after drag', () => {
+    test('should update widths and notify onWidthChanged after drag', async () => {
       const onWidthChanged = jest.fn();
       const { container } = render(<CustomColumnResizeIcon onWidthChanged={onWidthChanged} />);
       const resizable = container.querySelector('.resizable');
@@ -162,14 +162,14 @@ describe('CustomColumnResizeIcon Component', () => {
       expect(cell.style.minWidth).toBe('140px');
       expect(cell.style.maxWidth).toBe('140px');
 
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(150);
       });
 
       expect(onWidthChanged).toHaveBeenCalledWith(140, 0);
     });
 
-    test('should skip width update when computed width is not positive', () => {
+    test('should skip width update when computed width is not positive', async () => {
       const onWidthChanged = jest.fn();
       const { container } = render(<CustomColumnResizeIcon onWidthChanged={onWidthChanged} />);
       const resizable = container.querySelector('.resizable');
@@ -179,25 +179,25 @@ describe('CustomColumnResizeIcon Component', () => {
 
       expect(cell.style.width).toBe('');
 
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(150);
       });
 
       expect(onWidthChanged).not.toHaveBeenCalled();
     });
 
-    test('should not throw when onWidthChanged is not provided', () => {
+    test('should not throw when onWidthChanged is not provided', async () => {
       const { container } = render(<CustomColumnResizeIcon />);
       const resizable = container.querySelector('.resizable');
 
       fireDragWithClientX(resizable, 'dragStart', 0);
       fireDragWithClientX(resizable, 'drag', 30);
 
-      expect(() => {
-        act(() => {
+      await expect(
+        act(async () => {
           jest.advanceTimersByTime(150);
-        });
-      }).not.toThrow();
+        }),
+      ).resolves.not.toThrow();
     });
   });
 });
