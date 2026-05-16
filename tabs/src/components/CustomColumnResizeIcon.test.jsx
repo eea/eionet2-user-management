@@ -1,5 +1,5 @@
-import React from 'react';
-import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
+import React, { act } from 'react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import CustomColumnResizeIcon from './CustomColumnResizeIcon';
 
 function fireDragWithClientX(target, type, clientX) {

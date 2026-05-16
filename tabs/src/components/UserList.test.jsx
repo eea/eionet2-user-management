@@ -178,7 +178,7 @@ describe('UserList', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('resizable-grid').getAttribute('data-rows')).toContain(
+      expect(screen.getByTestId('resizable-grid').dataset.rows).toContain(
         '"Email":"john@example.com"',
       );
     });
