@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { act } from 'react';
 import { UserInvite } from './UserInvite';
 
 jest.mock('../data/provider', () => ({
@@ -156,7 +155,7 @@ describe('UserInvite', () => {
     );
     expect(screen.getByTestId('user-edit')).toHaveAttribute('data-check-pcp', 'true');
     expect(screen.getByTestId('user-edit')).toHaveAttribute('data-save-function', 'true');
-    expect(screen.getByTestId('user-edit').getAttribute('data-user-entity')).toContain(
+    expect(screen.getByTestId('user-edit').dataset.userEntity).toContain(
       '"Email":"new.user@example.com"',
     );
   });

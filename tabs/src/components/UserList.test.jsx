@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { act } from 'react';
 import { UserList } from './UserList';
 
 jest.mock('./eea_logo.svg', () => ({
@@ -179,7 +178,7 @@ describe('UserList', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('resizable-grid').getAttribute('data-rows')).toContain(
+      expect(screen.getByTestId('resizable-grid').dataset.rows).toContain(
         '"Email":"john@example.com"',
       );
     });

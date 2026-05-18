@@ -1,20 +1,21 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import ResizableGrid from './ResizableGrid';
 
 // Mock Material-UI Data Grid
 jest.mock('@mui/x-data-grid', () => ({
   DataGrid: ({ columns, components, ...props }) => {
     const mockReact = require('react');
+    const ColumnResizeIcon = components?.ColumnResizeIcon;
     return mockReact.createElement(
       'div',
       {
         'data-testid': 'data-grid',
         'data-columns': JSON.stringify(columns),
-        'data-components': JSON.stringify(components),
         'data-props': JSON.stringify(props),
       },
       'DataGrid',
+      ColumnResizeIcon ? mockReact.createElement(ColumnResizeIcon, { key: 'icon' }) : null,
     );
   },
 }));
@@ -24,9 +25,10 @@ jest.mock('./CustomColumnResizeIcon', () => {
   return function MockCustomColumnResizeIcon({ onWidthChanged }) {
     const mockReact = require('react');
     return mockReact.createElement(
-      'div',
+      'button',
       {
         'data-testid': 'custom-column-resize-icon',
+        type: 'button',
         onClick: () => onWidthChanged && onWidthChanged(200, 0),
       },
       'CustomColumnResizeIcon',
@@ -63,7 +65,7 @@ describe('ResizableGrid Component', () => {
     const dataGrid = screen.getByTestId('data-grid');
     expect(dataGrid).toHaveAttribute('data-columns');
 
-    const columnsData = JSON.parse(dataGrid.getAttribute('data-columns'));
+    const columnsData = JSON.parse(dataGrid.dataset.columns);
     expect(columnsData).toHaveLength(3);
     expect(columnsData[0]).toMatchObject({ field: 'id', headerName: 'ID', width: 100 });
   });
@@ -80,7 +82,7 @@ describe('ResizableGrid Component', () => {
     const dataGrid = screen.getByTestId('data-grid');
     expect(dataGrid).toHaveAttribute('data-props');
 
-    const propsData = JSON.parse(dataGrid.getAttribute('data-props'));
+    const propsData = JSON.parse(dataGrid.dataset.props);
     expect(propsData).toHaveProperty('pageSize', 10);
     expect(propsData).toHaveProperty('checkboxSelection', true);
   });
@@ -125,7 +127,7 @@ describe('ResizableGrid Component', () => {
     rerender(<ResizableGrid {...defaultProps} columns={newColumns} />);
 
     const dataGrid = screen.getByTestId('data-grid');
-    const columnsData = JSON.parse(dataGrid.getAttribute('data-columns'));
+    const columnsData = JSON.parse(dataGrid.dataset.columns);
     expect(columnsData).toHaveLength(2);
     expect(columnsData[0]).toMatchObject({ field: 'id', headerName: 'ID', width: 150 });
   });
@@ -142,7 +144,7 @@ describe('ResizableGrid Component', () => {
     render(<ResizableGrid {...defaultProps} />);
 
     const dataGrid = screen.getByTestId('data-grid');
-    const columnsData = JSON.parse(dataGrid.getAttribute('data-columns'));
+    const columnsData = JSON.parse(dataGrid.dataset.columns);
 
     expect(columnsData[0]).toHaveProperty('field', 'id');
     expect(columnsData[0]).toHaveProperty('headerName', 'ID');
@@ -166,7 +168,7 @@ describe('ResizableGrid Component', () => {
     const dataGrid = screen.getByTestId('data-grid');
     expect(dataGrid).toHaveAttribute('data-props');
 
-    const propsData = JSON.parse(dataGrid.getAttribute('data-props'));
+    const propsData = JSON.parse(dataGrid.dataset.props);
     expect(propsData).toHaveProperty('autoHeight', true);
     expect(propsData).toHaveProperty('disableSelectionOnClick', true);
     expect(propsData).toHaveProperty('hideFooter', false);
@@ -198,11 +200,31 @@ describe('ResizableGrid Component', () => {
     render(<ResizableGrid {...defaultProps} columns={complexColumns} />);
 
     const dataGrid = screen.getByTestId('data-grid');
-    const columnsData = JSON.parse(dataGrid.getAttribute('data-columns'));
+    const columnsData = JSON.parse(dataGrid.dataset.columns);
 
     expect(columnsData).toHaveLength(3);
     expect(columnsData[0]).toHaveProperty('sortable', true);
     expect(columnsData[1]).toHaveProperty('filterable', true);
     expect(columnsData[2]).toHaveProperty('resizable', false);
+  });
+
+  test('should render the custom ColumnResizeIcon component', () => {
+    render(<ResizableGrid {...defaultProps} />);
+
+    expect(screen.getByTestId('custom-column-resize-icon')).toBeInTheDocument();
+  });
+
+  test('should update column width when width change is signaled', () => {
+    render(<ResizableGrid {...defaultProps} />);
+
+    const dataGrid = screen.getByTestId('data-grid');
+    const before = JSON.parse(dataGrid.dataset.columns);
+    expect(before[0]).toMatchObject({ field: 'id', width: 100 });
+
+    fireEvent.click(screen.getByTestId('custom-column-resize-icon'));
+
+    const after = JSON.parse(screen.getByTestId('data-grid').dataset.columns);
+    expect(after[0]).toMatchObject({ field: 'id', width: 200, flex: 0 });
+    expect(after[1]).toMatchObject({ field: 'name', width: 200 });
   });
 });

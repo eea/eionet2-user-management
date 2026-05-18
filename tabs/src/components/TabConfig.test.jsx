@@ -41,8 +41,8 @@ describe('TabConfig', () => {
     expect(mockSetSettings).toHaveBeenCalledWith({
       suggestedDisplayName: 'Manage users',
       entityId: 'EditUser',
-      contentUrl: `https://${window.location.hostname}:${window.location.port}/index.html#/edittab`,
-      websiteUrl: `https://${window.location.hostname}:${window.location.port}/index.html#/edittab`,
+      contentUrl: `https://${globalThis.location.hostname}:${globalThis.location.port}/index.html#/edittab`,
+      websiteUrl: `https://${globalThis.location.hostname}:${globalThis.location.port}/index.html#/edittab`,
     });
     expect(notifySuccess).toHaveBeenCalledTimes(1);
   });

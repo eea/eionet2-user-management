@@ -1,6 +1,13 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
+import React, { act } from 'react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import CustomColumnResizeIcon from './CustomColumnResizeIcon';
+
+function fireDragWithClientX(target, type, clientX) {
+  const factory = createEvent[type];
+  const event = factory(target);
+  Object.defineProperty(event, 'clientX', { value: clientX, configurable: true });
+  fireEvent(target, event);
+}
 
 // Mock Material-UI Data Grid
 jest.mock('@mui/x-data-grid', () => ({
@@ -107,5 +114,90 @@ describe('CustomColumnResizeIcon Component', () => {
 
     // Should have the GridSeparatorIcon inside
     expect(screen.getByTestId('grid-separator-icon')).toBeInTheDocument();
+  });
+
+  describe('drag-based resize behavior', () => {
+    let columnHeader;
+    let cell;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+
+      columnHeader = document.createElement('div');
+      columnHeader.setAttribute('role', 'columnheader');
+      columnHeader.setAttribute('tabindex', '0');
+      columnHeader.setAttribute('aria-colindex', '1');
+      Object.defineProperty(columnHeader, 'offsetWidth', {
+        configurable: true,
+        value: 100,
+      });
+      Object.defineProperty(columnHeader, 'ariaColIndex', {
+        configurable: true,
+        value: '1',
+      });
+      document.body.appendChild(columnHeader);
+
+      cell = document.createElement('div');
+      cell.setAttribute('role', 'cell');
+      cell.setAttribute('aria-colindex', '1');
+      document.body.appendChild(cell);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      columnHeader.remove();
+      cell.remove();
+    });
+
+    test('should update widths and notify onWidthChanged after drag', async () => {
+      const onWidthChanged = jest.fn();
+      const { container } = render(<CustomColumnResizeIcon onWidthChanged={onWidthChanged} />);
+      const resizable = container.querySelector('.resizable');
+
+      fireDragWithClientX(resizable, 'dragStart', 50);
+      fireDragWithClientX(resizable, 'drag', 90);
+
+      expect(columnHeader.style.width).toBe('140px');
+      expect(cell.style.width).toBe('140px');
+      expect(cell.style.minWidth).toBe('140px');
+      expect(cell.style.maxWidth).toBe('140px');
+
+      await act(async () => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(onWidthChanged).toHaveBeenCalledWith(140, 0);
+    });
+
+    test('should skip width update when computed width is not positive', async () => {
+      const onWidthChanged = jest.fn();
+      const { container } = render(<CustomColumnResizeIcon onWidthChanged={onWidthChanged} />);
+      const resizable = container.querySelector('.resizable');
+
+      fireDragWithClientX(resizable, 'dragStart', 50);
+      fireDragWithClientX(resizable, 'drag', -200);
+
+      expect(cell.style.width).toBe('');
+
+      await act(async () => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(onWidthChanged).not.toHaveBeenCalled();
+    });
+
+    test('should not throw when onWidthChanged is not provided', async () => {
+      const { container } = render(<CustomColumnResizeIcon />);
+      const resizable = container.querySelector('.resizable');
+
+      fireDragWithClientX(resizable, 'dragStart', 0);
+      fireDragWithClientX(resizable, 'drag', 30);
+
+      await expect(
+        act(async () => {
+          jest.advanceTimersByTime(150);
+        }),
+      ).resolves.not.toThrow();
+    });
   });
 });
