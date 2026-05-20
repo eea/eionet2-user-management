@@ -374,7 +374,7 @@ export async function removeUser(user) {
         });
       } catch (err) {
         //User not found in Entra. Flow should continue.
-        if (err.response?.data?.error?.statusCode != 404) {
+        if (err.response?.status != 404) {
           return wrapError(err, messages.UserDelete.Errors.ADUser);
         } else {
           logInfo(

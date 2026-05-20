@@ -51,7 +51,7 @@ const provider = require('./provider');
 describe('provider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => { });
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     sharepointProvider.checkPCP.mockResolvedValue({});
     apiProvider.getConfiguration.mockResolvedValue({
       InviteEmailText: 'Invite body',
@@ -60,7 +60,7 @@ describe('provider', () => {
       SharepointSiteId: 'site-id',
       UserListId: 'user-list-id',
     });
-    providerHelper.capitalizeName.mockImplementation(() => { });
+    providerHelper.capitalizeName.mockImplementation(() => {});
     providerHelper.buildUserDisplaName.mockReturnValue('John Doe');
     providerHelper.getDistinctGroupsIds.mockImplementation((mappings) => [
       ...new Set(mappings.map((mapping) => mapping.O365GroupId)),
@@ -70,7 +70,7 @@ describe('provider', () => {
     sharepointProvider.saveSPUser.mockResolvedValue({});
     apiProvider.apiPatch.mockResolvedValue({});
     apiProvider.apiPost.mockResolvedValue({});
-    apiProvider.logInfo.mockImplementation(() => { });
+    apiProvider.logInfo.mockImplementation(() => {});
     notificationProvider.sendInvitationMail.mockResolvedValue({});
   });
 
@@ -373,7 +373,10 @@ describe('provider', () => {
         { Membership: 'Member', O365GroupId: 'group-1' },
       ]);
       apiProvider.apiPatch.mockRejectedValueOnce({
-        response: { data: { error: { statusCode: 404 } } },
+        response: {
+          data: {},
+          status: 404,
+        },
       });
 
       const result = await provider.removeUser({
