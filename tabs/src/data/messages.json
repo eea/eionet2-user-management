@@ -11,7 +11,7 @@
       "SharepointUser": "User details could not be updated in the SharePoint Users list.",
       "Mail": "An error has occured during the sending invitation email.",
       "Error": "An error has occured during the invitation process.",
-      "PCP": "The following groups already have PCPs specified:"
+      "PCP": "The following groups already have Leads specified:"
     }
   },
   "UserList": {
@@ -29,7 +29,7 @@
       "TagsCreation": "The tags could not be updated. Please use the Manage user tab to update the user Membership(s)",
       "SharepointUser": "User details could not be updated in the SharePoint Users list.",
       "Error": "An error has occured when saving user information.",
-      "PCP": "The following groups already have PCPs specified:"
+      "PCP": "The following groups already have Leads specified:"
     }
   },
   "UserDelete": {

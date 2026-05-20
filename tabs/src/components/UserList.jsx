@@ -332,7 +332,10 @@ export function UserList({ userInfo }) {
         ...new Set(
           (user.PCP || []).filter(
             (pcpGroup) =>
-              users.filter((u) => u.Email != user.Email && u.PCP?.includes(pcpGroup)).length > 0,
+              users.filter(
+                (u) =>
+                  u.Email != user.Email && u.Country === user.Country && u.PCP?.includes(pcpGroup),
+              ).length > 0,
           ),
         ),
       ];
