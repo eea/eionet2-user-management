@@ -289,6 +289,39 @@ describe('tagProvider', () => {
       );
     });
 
+    test('should swallow 404 errors without rethrowing', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const teamId = 'team1';
+      const name = 'New Tag';
+      const userId = 'user1';
+
+      const error = new Error('Not Found');
+      error.response = { status: 404 };
+      apiProvider.apiGet.mockRejectedValue(error);
+
+      await expect(tagProvider.addTag(teamId, name, userId)).resolves.toBeUndefined();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `addTag skipped (404) for team ${teamId}, tag ${name}, user ${userId}`,
+      );
+      expect(apiProvider.apiPost).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    test('should rethrow non-404 errors', async () => {
+      const teamId = 'team1';
+      const name = 'New Tag';
+      const userId = 'user1';
+
+      const error = new Error('Server Error');
+      error.response = { status: 500 };
+      apiProvider.apiGet.mockRejectedValue(error);
+
+      await expect(tagProvider.addTag(teamId, name, userId)).rejects.toThrow('Server Error');
+      expect(apiProvider.apiPost).not.toHaveBeenCalled();
+    });
+
     test('should not add user to existing tag when user is already a member', async () => {
       const teamId = 'team1';
       const name = 'Existing Tag';
@@ -410,6 +443,29 @@ describe('tagProvider', () => {
         `/teams/${teamId}/tags/tag1/members?$filter=userId eq '${userId}'`,
       );
       expect(apiProvider.apiDelete).not.toHaveBeenCalled();
+    });
+
+    test('should swallow errors from getTag when tag member lookup fails', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const teamId = 'team1';
+      const name = 'Existing Tag';
+      const userId = 'user1';
+
+      const mockTagResponse = {
+        graphClientMessage: {
+          value: [{ id: 'tag1' }],
+        },
+      };
+
+      const error = new Error('Not Found');
+      apiProvider.apiGet.mockResolvedValueOnce(mockTagResponse).mockRejectedValueOnce(error);
+
+      await expect(tagProvider.removeTag(teamId, name, userId)).resolves.toBeUndefined();
+
+      expect(consoleSpy).toHaveBeenCalledWith(error);
+      expect(apiProvider.apiDelete).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
     });
 
     test('should not remove user from tag when tag does not exist', async () => {

@@ -33,18 +33,22 @@ jest.mock('./UserEdit', () => ({
   UserEdit: () => <div data-testid="user-edit">UserEdit</div>,
 }));
 
+const userInviteProps = { checkPCP: null };
 jest.mock('./UserInvite', () => ({
-  UserInvite: ({ userInfo, configuration, refreshList, checkPCP }) => (
-    <div
-      data-testid="user-invite"
-      data-user-info={JSON.stringify(userInfo)}
-      data-configuration={JSON.stringify(configuration)}
-      data-refresh-list={String(typeof refreshList === 'function')}
-      data-check-pcp={String(typeof checkPCP === 'function')}
-    >
-      UserInvite
-    </div>
-  ),
+  UserInvite: ({ userInfo, configuration, refreshList, checkPCP }) => {
+    userInviteProps.checkPCP = checkPCP;
+    return (
+      <div
+        data-testid="user-invite"
+        data-user-info={JSON.stringify(userInfo)}
+        data-configuration={JSON.stringify(configuration)}
+        data-refresh-list={String(typeof refreshList === 'function')}
+        data-check-pcp={String(typeof checkPCP === 'function')}
+      >
+        UserInvite
+      </div>
+    );
+  },
 }));
 
 jest.mock('./Snack', () => {
@@ -306,6 +310,74 @@ describe('UserList', () => {
         "Success. User removed from Eionet's workspace.",
       );
     });
+  });
+
+  test('checkPCP only flags PCP groups shared with users from the same country', async () => {
+    sharepointProvider.getInvitedUsers.mockResolvedValueOnce([
+      {
+        id: '1',
+        Title: 'John Doe',
+        Email: 'john@example.com',
+        ADUserId: 'ad-1',
+        Country: 'RO',
+        Membership: ['Member'],
+        MembershipString: 'Member',
+        OtherMemberships: [],
+        SignedIn: false,
+        PCP: ['Member'],
+      },
+      {
+        id: '2',
+        Title: 'Jane Roe',
+        Email: 'jane@example.com',
+        ADUserId: 'ad-2',
+        Country: 'RO',
+        Membership: ['Member'],
+        MembershipString: 'Member',
+        OtherMemberships: [],
+        SignedIn: true,
+        PCP: ['Member'],
+      },
+      {
+        id: '3',
+        Title: 'Hans Mueller',
+        Email: 'hans@example.com',
+        ADUserId: 'ad-3',
+        Country: 'DE',
+        Membership: ['Member'],
+        MembershipString: 'Member',
+        OtherMemberships: [],
+        SignedIn: true,
+        PCP: ['Member'],
+      },
+    ]);
+
+    render(<UserList userInfo={userInfo} />);
+    await flushEffects();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Invite user' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Invite user' }));
+
+    await waitFor(() => {
+      expect(typeof userInviteProps.checkPCP).toBe('function');
+    });
+
+    const candidateSameCountry = {
+      Email: 'new@example.com',
+      Country: 'RO',
+      PCP: ['Member'],
+    };
+    expect(userInviteProps.checkPCP(candidateSameCountry)).toEqual(['Member']);
+
+    const candidateDifferentCountry = {
+      Email: 'new@example.com',
+      Country: 'FR',
+      PCP: ['Member'],
+    };
+    expect(userInviteProps.checkPCP(candidateDifferentCountry)).toEqual([]);
   });
 
   test('filters the grid rows when the search value is long enough', async () => {

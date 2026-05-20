@@ -328,6 +328,41 @@ describe('userGroupProvider', () => {
       expect(result).toEqual([]);
     });
 
+    test('should skip batches that return 404 and continue with remaining batches', async () => {
+      const userId = 'user1';
+      const groupIds = Array.from({ length: 25 }, (_, i) => `group${i + 1}`);
+
+      const error = new Error('Not Found');
+      error.response = { status: 404 };
+
+      const mockResponse = {
+        graphClientMessage: {
+          value: ['group21'],
+        },
+      };
+
+      apiProvider.apiPost.mockRejectedValueOnce(error).mockResolvedValueOnce(mockResponse);
+
+      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
+
+      expect(result).toEqual(['group21']);
+      expect(apiProvider.apiPost).toHaveBeenCalledTimes(2);
+    });
+
+    test('should rethrow non-404 errors from checkMemberGroups', async () => {
+      const userId = 'user1';
+      const groupIds = ['group1', 'group2'];
+
+      const error = new Error('Server Error');
+      error.response = { status: 500 };
+
+      apiProvider.apiPost.mockRejectedValue(error);
+
+      await expect(userGroupProvider.getExistingGroups(userId, groupIds)).rejects.toThrow(
+        'Server Error',
+      );
+    });
+
     test('should handle null graphClientMessage in response', async () => {
       const userId = 'user1';
       const groupIds = ['group1', 'group2'];

@@ -412,6 +412,36 @@ describe('provider', () => {
       );
       expect(result).toEqual({ Success: true });
     });
+
+    test('wraps non-404 AD patch errors and stops the removal flow', async () => {
+      configurationProvider.getMappingsList.mockResolvedValue([
+        { Membership: 'Member', O365GroupId: 'group-1' },
+      ]);
+      const adError = {
+        response: {
+          status: 500,
+          data: { error: { message: 'boom' } },
+        },
+      };
+      apiProvider.apiPatch.mockRejectedValueOnce(adError);
+
+      const result = await provider.removeUser({
+        id: 'sp-item-1',
+        ADUserId: 'user-1',
+        Email: 'user@example.com',
+        FirstName: 'John',
+        LastName: 'Doe',
+        Membership: ['Member'],
+        OtherMemberships: [],
+      });
+
+      expect(result).toEqual({
+        Success: false,
+        Error: adError,
+        Message: 'Could not update the user information.',
+      });
+      expect(apiProvider.apiDelete).not.toHaveBeenCalled();
+    });
   });
 
   describe('resendInvitation', () => {
