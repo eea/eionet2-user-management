@@ -267,6 +267,8 @@ describe('userGroupProvider', () => {
         {
           groupIds: ['group1', 'group2', 'group3'],
         },
+        'app',
+        true,
       );
     });
 

@@ -28,26 +28,45 @@ export function getCountryName(countryCode) {
 }
 
 export async function addTag(teamId, name, userId) {
-  let response = await apiGet('/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'");
+  //Graph endpoints under /teams/{id}/tags can return 404 transiently while
+  //group->team membership propagates after a fresh group-add. Treat 404 as
+  //"skip" instead of letting it pollute the error log.
+  try {
+    let response = await apiGet(
+      '/teams/' + teamId + "/tags?$filter=displayName eq '" + name + "'",
+      'app',
+      true,
+    );
 
-  if (response?.graphClientMessage?.value?.length) {
-    const existingTag = response.graphClientMessage.value[0],
-      tagMemberIdResponse = await getTag(teamId, existingTag.id, userId);
+    if (response?.graphClientMessage?.value?.length) {
+      const existingTag = response.graphClientMessage.value[0],
+        tagMemberIdResponse = await getTag(teamId, existingTag.id, userId);
 
-    if (!tagMemberIdResponse?.graphClientMessage?.value?.length) {
-      await apiPost('/teams/' + teamId + '/tags/' + existingTag.id + '/members', {
-        userId: userId,
-      });
-    }
-  } else {
-    await apiPost('/teams/' + teamId + '/tags', {
-      displayName: name,
-      members: [
+      if (!tagMemberIdResponse?.graphClientMessage?.value?.length) {
+        await apiPost(
+          '/teams/' + teamId + '/tags/' + existingTag.id + '/members',
+          { userId: userId },
+          'app',
+          true,
+        );
+      }
+    } else {
+      await apiPost(
+        '/teams/' + teamId + '/tags',
         {
-          userId: userId,
+          displayName: name,
+          members: [{ userId: userId }],
         },
-      ],
-    });
+        'app',
+        true,
+      );
+    }
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      console.log(`addTag skipped (404) for team ${teamId}, tag ${name}, user ${userId}`);
+      return;
+    }
+    throw err;
   }
 }
 

@@ -227,15 +227,22 @@ describe('tagProvider', () => {
 
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         `/teams/${teamId}/tags?$filter=displayName eq '${name}'`,
+        'app',
+        true,
       );
-      expect(apiProvider.apiPost).toHaveBeenCalledWith(`/teams/${teamId}/tags`, {
-        displayName: name,
-        members: [
-          {
-            userId: userId,
-          },
-        ],
-      });
+      expect(apiProvider.apiPost).toHaveBeenCalledWith(
+        `/teams/${teamId}/tags`,
+        {
+          displayName: name,
+          members: [
+            {
+              userId: userId,
+            },
+          ],
+        },
+        'app',
+        true,
+      );
     });
 
     test('should add user to existing tag when tag exists but user is not a member', async () => {
@@ -268,13 +275,18 @@ describe('tagProvider', () => {
 
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         `/teams/${teamId}/tags?$filter=displayName eq '${name}'`,
+        'app',
+        true,
       );
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         `/teams/${teamId}/tags/tag1/members?$filter=userId eq '${userId}'`,
       );
-      expect(apiProvider.apiPost).toHaveBeenCalledWith(`/teams/${teamId}/tags/tag1/members`, {
-        userId: userId,
-      });
+      expect(apiProvider.apiPost).toHaveBeenCalledWith(
+        `/teams/${teamId}/tags/tag1/members`,
+        { userId: userId },
+        'app',
+        true,
+      );
     });
 
     test('should not add user to existing tag when user is already a member', async () => {
@@ -310,6 +322,8 @@ describe('tagProvider', () => {
 
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         `/teams/${teamId}/tags?$filter=displayName eq '${name}'`,
+        'app',
+        true,
       );
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         `/teams/${teamId}/tags/tag1/members?$filter=userId eq '${userId}'`,

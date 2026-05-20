@@ -179,8 +179,8 @@ export async function inviteUser(user, mappings) {
             }
             const tags = [...new Set(userMappings.filter((m) => m.Tag))];
             for (const m of tags) {
-              addTag(m.O365GroupId, m.Tag, userId);
-              addTag(m.O365GroupId, getCountryName(user.Country), userId);
+              await addTag(m.O365GroupId, m.Tag, userId);
+              await addTag(m.O365GroupId, getCountryName(user.Country), userId);
             }
           } catch (err) {
             return wrapError(err, messages.UserInvite.Errors.TagsCreation);
