@@ -73,9 +73,25 @@ export async function getExistingGroups(userId, groupIds) {
   //directoryObjects endpoint allows max 20 groups ids per request.
   //see: https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0&tabs=http#request-body
   while (localGroupsIds.length > 0) {
-    const response = await apiPost('/directoryObjects/' + userId + '/checkMemberGroups', {
-      groupIds: localGroupsIds.splice(0, 20),
-    });
+    const batch = localGroupsIds.splice(0, 20);
+    let response;
+    try {
+      response = await apiPost(
+        '/directoryObjects/' + userId + '/checkMemberGroups',
+        {
+          groupIds: batch,
+        },
+        'app',
+        true,
+      );
+    } catch (err) {
+      //Freshly invited users may not yet be resolvable via /directoryObjects
+      //due to Graph replication latency; treat as "no memberships".
+      if (err?.response?.status === 404) {
+        continue;
+      }
+      throw err;
+    }
 
     response?.graphClientMessage?.value &&
       (result = result.concat(response?.graphClientMessage?.value));

@@ -170,7 +170,7 @@ describe('provider', () => {
       expect(result).toEqual({
         Success: false,
         Error: {},
-        Message: 'The following groups already have PCPs specified:Member: existing@example.com',
+        Message: 'The following groups already have Leads specified:Member: existing@example.com',
       });
       expect(apiProvider.apiPost).not.toHaveBeenCalled();
     });
@@ -373,7 +373,10 @@ describe('provider', () => {
         { Membership: 'Member', O365GroupId: 'group-1' },
       ]);
       apiProvider.apiPatch.mockRejectedValueOnce({
-        response: { data: { error: { statusCode: 404 } } },
+        response: {
+          data: {},
+          status: 404,
+        },
       });
 
       const result = await provider.removeUser({
@@ -408,6 +411,36 @@ describe('provider', () => {
         '/sites/site-id/lists/user-list-id/items/sp-item-1',
       );
       expect(result).toEqual({ Success: true });
+    });
+
+    test('wraps non-404 AD patch errors and stops the removal flow', async () => {
+      configurationProvider.getMappingsList.mockResolvedValue([
+        { Membership: 'Member', O365GroupId: 'group-1' },
+      ]);
+      const adError = {
+        response: {
+          status: 500,
+          data: { error: { message: 'boom' } },
+        },
+      };
+      apiProvider.apiPatch.mockRejectedValueOnce(adError);
+
+      const result = await provider.removeUser({
+        id: 'sp-item-1',
+        ADUserId: 'user-1',
+        Email: 'user@example.com',
+        FirstName: 'John',
+        LastName: 'Doe',
+        Membership: ['Member'],
+        OtherMemberships: [],
+      });
+
+      expect(result).toEqual({
+        Success: false,
+        Error: adError,
+        Message: 'Could not update the user information.',
+      });
+      expect(apiProvider.apiDelete).not.toHaveBeenCalled();
     });
   });
 
