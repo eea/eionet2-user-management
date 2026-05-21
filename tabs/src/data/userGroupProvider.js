@@ -23,16 +23,37 @@ export async function getUserGroups(userId) {
   }
 }
 
+function isAlreadyMemberError(err) {
+  const code = err?.response?.data?.error?.code ?? err?.response?.data?.code ?? err?.code;
+  const message =
+    err?.response?.data?.error?.message ?? err?.response?.data?.message ?? err?.message ?? '';
+  return code === 'Request_BadRequest' && /already exist/i.test(message);
+}
+
+function isNotMemberError(err) {
+  return err?.response?.status === 404;
+}
+
 export async function postUserGroup(groupId, userId, email) {
   if (groupId) {
     const apiPath = `/groups/${groupId}/members/$ref`;
     try {
-      await apiPost(apiPath, {
-        '@odata.id': constants.DIRECTORY_OBJECTS_PATH + userId,
-      });
+      await apiPost(
+        apiPath,
+        {
+          '@odata.id': constants.DIRECTORY_OBJECTS_PATH + userId,
+        },
+        'app',
+        true,
+      );
     } catch (err) {
-      logInfo(
-        `An error has occured when adding userId ${userId} to group ${groupId}. This might be caused by the fact that the user is already member of the group`,
+      //Graph's membership reads are eventually consistent, so we can't reliably
+      //pre-check. Treat "already a member" as success; the desired end state holds.
+      if (isAlreadyMemberError(err)) {
+        return;
+      }
+      await logInfo(
+        `An error has occured when adding userId ${userId} to group ${groupId}.`,
         apiPath,
         {
           userId: userId,
@@ -48,12 +69,17 @@ export async function postUserGroup(groupId, userId, email) {
 }
 
 export async function deleteUserGroup(groupId, userId, email) {
+  const apiPath = '/groups/' + groupId + '/members/' + userId + '/$ref';
   try {
-    await apiDelete('/groups/' + groupId + '/members/' + userId + '/$ref');
+    await apiDelete(apiPath, 'app', true);
   } catch (err) {
-    logInfo(
+    //404 means the user is not in the group — desired end state already holds.
+    if (isNotMemberError(err)) {
+      return;
+    }
+    await logInfo(
       'Group removal returned error. ',
-      '',
+      apiPath,
       {
         userId: userId,
         groupId: groupId,
@@ -63,38 +89,4 @@ export async function deleteUserGroup(groupId, userId, email) {
       email,
     );
   }
-}
-
-export async function getExistingGroups(userId, groupIds) {
-  let result = [];
-
-  let localGroupsIds = [...groupIds];
-
-  //directoryObjects endpoint allows max 20 groups ids per request.
-  //see: https://learn.microsoft.com/en-us/graph/api/directoryobject-checkmembergroups?view=graph-rest-1.0&tabs=http#request-body
-  while (localGroupsIds.length > 0) {
-    const batch = localGroupsIds.splice(0, 20);
-    let response;
-    try {
-      response = await apiPost(
-        '/directoryObjects/' + userId + '/checkMemberGroups',
-        {
-          groupIds: batch,
-        },
-        'app',
-        true,
-      );
-    } catch (err) {
-      //Freshly invited users may not yet be resolvable via /directoryObjects
-      //due to Graph replication latency; treat as "no memberships".
-      if (err?.response?.status === 404) {
-        continue;
-      }
-      throw err;
-    }
-
-    response?.graphClientMessage?.value &&
-      (result = result.concat(response?.graphClientMessage?.value));
-  }
-  return result;
 }

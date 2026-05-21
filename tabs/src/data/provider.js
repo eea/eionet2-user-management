@@ -3,7 +3,7 @@ import { getSPUserByMail, saveSPUser, checkPCP } from './sharepointProvider';
 import { getMappingsList } from './configurationProvider';
 import { getDistinctGroupsIds, capitalizeName, buildUserDisplaName } from './providerHelper';
 import { addTag, removeTag, getCountryName } from './tagProvider';
-import { postUserGroup, deleteUserGroup, getExistingGroups } from './userGroupProvider';
+import { postUserGroup, deleteUserGroup } from './userGroupProvider';
 import { sendInvitationMail } from './notificationProvider';
 import messages from './messages.json';
 import * as constants from './constants';
@@ -143,9 +143,7 @@ export async function inviteUser(user, mappings) {
               ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
             ];
 
-            const existingGroups = await getExistingGroups(userId, groupIds);
-
-            for (const groupId of groupIds.filter((id) => !existingGroups?.includes(id))) {
+            for (const groupId of groupIds) {
               await postUserGroup(groupId, userId, user.Email);
             }
           } catch (err) {
@@ -161,9 +159,8 @@ export async function inviteUser(user, mappings) {
 
         //apply user membership and country tag
         const userGroupIds = getDistinctGroupsIds(userMappings);
-        const existingGroups = await getExistingGroups(userId, userGroupIds);
         try {
-          for (const groupId of userGroupIds.filter((id) => !existingGroups?.includes(id))) {
+          for (const groupId of userGroupIds) {
             await postUserGroup(groupId, userId, user.Email);
           }
         } catch (err) {
@@ -239,9 +236,7 @@ export async function editUser(user, mappings, oldValues) {
       oldTags = [...new Set(oldMappings.filter((m) => m.Tag))],
       config = await getConfiguration();
 
-    const existingGroups = await getExistingGroups(user.ADUserId, newGroups);
-
-    for (const groupId of newGroups.filter((id) => !existingGroups?.includes(id))) {
+    for (const groupId of newGroups) {
       await postUserGroup(groupId, user.ADUserId, user.Email);
 
       const groupMapping = mappings.filter((m) => m.O365GroupId === groupId);
@@ -278,18 +273,8 @@ export async function editUser(user, mappings, oldValues) {
     }
 
     if (user.NFP && !oldValues.NFP) {
-      const nfpGroupIds = [
-        ...new Set([config.NFPGroupId, config.MainEionetGroupId].filter((g) => !!g)),
-      ];
-
-      const existingNFPGroups = await getExistingGroups(user.ADUserId, nfpGroupIds);
-
-      if (!existingNFPGroups?.includes(config.NFPGroupId)) {
-        await postUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
-      }
-      if (!existingNFPGroups?.includes(config.MainEionetGroupId)) {
-        await postUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
-      }
+      await postUserGroup(config.NFPGroupId, user.ADUserId, user.Email);
+      await postUserGroup(config.MainEionetGroupId, user.ADUserId, user.Email);
 
       if (user.SignedIn) {
         try {

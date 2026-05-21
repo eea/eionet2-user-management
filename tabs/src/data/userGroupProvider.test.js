@@ -158,9 +158,12 @@ describe('userGroupProvider', () => {
 
       await userGroupProvider.postUserGroup(groupId, userId, email);
 
-      expect(apiProvider.apiPost).toHaveBeenCalledWith('/groups/group1/members/$ref', {
-        '@odata.id': 'https://graph.microsoft.com/v1.0/directoryObjects/user1',
-      });
+      expect(apiProvider.apiPost).toHaveBeenCalledWith(
+        '/groups/group1/members/$ref',
+        { '@odata.id': 'https://graph.microsoft.com/v1.0/directoryObjects/user1' },
+        'app',
+        true,
+      );
     });
 
     test('should not add user when groupId is null', async () => {
@@ -196,7 +199,7 @@ describe('userGroupProvider', () => {
       );
 
       expect(apiProvider.logInfo).toHaveBeenCalledWith(
-        'An error has occured when adding userId user1 to group group1. This might be caused by the fact that the user is already member of the group',
+        'An error has occured when adding userId user1 to group group1.',
         '/groups/group1/members/$ref',
         {
           userId: 'user1',
@@ -206,6 +209,30 @@ describe('userGroupProvider', () => {
         'postUserGroup',
         'user@example.com',
       );
+    });
+
+    test('swallows "already a member" errors and does not log', async () => {
+      const groupId = 'group1';
+      const userId = 'user1';
+      const email = 'user@example.com';
+      const alreadyMemberError = {
+        response: {
+          data: {
+            error: {
+              code: 'Request_BadRequest',
+              message:
+                "One or more added object references already exist for the following modified properties: 'members'.",
+            },
+          },
+        },
+      };
+
+      apiProvider.apiPost.mockRejectedValue(alreadyMemberError);
+
+      await expect(
+        userGroupProvider.postUserGroup(groupId, userId, email),
+      ).resolves.toBeUndefined();
+      expect(apiProvider.logInfo).not.toHaveBeenCalled();
     });
   });
 
@@ -219,7 +246,25 @@ describe('userGroupProvider', () => {
 
       await userGroupProvider.deleteUserGroup(groupId, userId, email);
 
-      expect(apiProvider.apiDelete).toHaveBeenCalledWith('/groups/group1/members/user1/$ref');
+      expect(apiProvider.apiDelete).toHaveBeenCalledWith(
+        '/groups/group1/members/user1/$ref',
+        'app',
+        true,
+      );
+    });
+
+    test('swallows 404 silently when the user is not a member', async () => {
+      const groupId = 'group1';
+      const userId = 'user1';
+      const email = 'user@example.com';
+      const notFoundError = { response: { status: 404 } };
+
+      apiProvider.apiDelete.mockRejectedValue(notFoundError);
+
+      await expect(
+        userGroupProvider.deleteUserGroup(groupId, userId, email),
+      ).resolves.toBeUndefined();
+      expect(apiProvider.logInfo).not.toHaveBeenCalled();
     });
 
     test('should handle error and log it', async () => {
@@ -234,7 +279,7 @@ describe('userGroupProvider', () => {
 
       expect(apiProvider.logInfo).toHaveBeenCalledWith(
         'Group removal returned error. ',
-        '',
+        '/groups/group1/members/user1/$ref',
         {
           userId: 'user1',
           groupId: 'group1',
@@ -246,136 +291,4 @@ describe('userGroupProvider', () => {
     });
   });
 
-  describe('getExistingGroups', () => {
-    test('should return existing groups for user', async () => {
-      const userId = 'user1';
-      const groupIds = ['group1', 'group2', 'group3'];
-
-      const mockResponse = {
-        graphClientMessage: {
-          value: ['group1', 'group3'],
-        },
-      };
-
-      apiProvider.apiPost.mockResolvedValue(mockResponse);
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual(['group1', 'group3']);
-      expect(apiProvider.apiPost).toHaveBeenCalledWith(
-        '/directoryObjects/user1/checkMemberGroups',
-        {
-          groupIds: ['group1', 'group2', 'group3'],
-        },
-        'app',
-        true,
-      );
-    });
-
-    test('should handle multiple batches when groupIds exceed 20', async () => {
-      const userId = 'user1';
-      const groupIds = Array.from({ length: 45 }, (_, i) => `group${i + 1}`);
-
-      const mockResponse1 = {
-        graphClientMessage: {
-          value: ['group1', 'group2'],
-        },
-      };
-
-      const mockResponse2 = {
-        graphClientMessage: {
-          value: ['group21', 'group22'],
-        },
-      };
-
-      const mockResponse3 = {
-        graphClientMessage: {
-          value: ['group41', 'group42'],
-        },
-      };
-
-      apiProvider.apiPost
-        .mockResolvedValueOnce(mockResponse1)
-        .mockResolvedValueOnce(mockResponse2)
-        .mockResolvedValueOnce(mockResponse3);
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual(['group1', 'group2', 'group21', 'group22', 'group41', 'group42']);
-      expect(apiProvider.apiPost).toHaveBeenCalledTimes(3);
-    });
-
-    test('should handle empty groupIds array', async () => {
-      const userId = 'user1';
-      const groupIds = [];
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual([]);
-      expect(apiProvider.apiPost).not.toHaveBeenCalled();
-    });
-
-    test('should handle missing graphClientMessage in response', async () => {
-      const userId = 'user1';
-      const groupIds = ['group1', 'group2'];
-
-      const mockResponse = {};
-
-      apiProvider.apiPost.mockResolvedValue(mockResponse);
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual([]);
-    });
-
-    test('should skip batches that return 404 and continue with remaining batches', async () => {
-      const userId = 'user1';
-      const groupIds = Array.from({ length: 25 }, (_, i) => `group${i + 1}`);
-
-      const error = new Error('Not Found');
-      error.response = { status: 404 };
-
-      const mockResponse = {
-        graphClientMessage: {
-          value: ['group21'],
-        },
-      };
-
-      apiProvider.apiPost.mockRejectedValueOnce(error).mockResolvedValueOnce(mockResponse);
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual(['group21']);
-      expect(apiProvider.apiPost).toHaveBeenCalledTimes(2);
-    });
-
-    test('should rethrow non-404 errors from checkMemberGroups', async () => {
-      const userId = 'user1';
-      const groupIds = ['group1', 'group2'];
-
-      const error = new Error('Server Error');
-      error.response = { status: 500 };
-
-      apiProvider.apiPost.mockRejectedValue(error);
-
-      await expect(userGroupProvider.getExistingGroups(userId, groupIds)).rejects.toThrow(
-        'Server Error',
-      );
-    });
-
-    test('should handle null graphClientMessage in response', async () => {
-      const userId = 'user1';
-      const groupIds = ['group1', 'group2'];
-
-      const mockResponse = {
-        graphClientMessage: null,
-      };
-
-      apiProvider.apiPost.mockResolvedValue(mockResponse);
-
-      const result = await userGroupProvider.getExistingGroups(userId, groupIds);
-
-      expect(result).toEqual([]);
-    });
-  });
 });
