@@ -267,6 +267,8 @@ describe('provider', () => {
 
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         "/reports/credentialUserRegistrationDetails?$filter=userDisplayName eq 'Jane O''Connor'",
+        'app',
+        true,
       );
       expect(notificationProvider.sendInvitationMail).toHaveBeenCalledWith(
         expect.objectContaining({ Email: 'existing@example.com', SignedIn: true }),

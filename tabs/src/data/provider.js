@@ -63,6 +63,8 @@ async function checkMFAStatus(userDisplayName) {
       "/reports/credentialUserRegistrationDetails?$filter=userDisplayName eq '" +
         userDisplayName.replace("'", "''") +
         "'",
+      'app',
+      true,
     );
     return response.graphClientMessage;
   } catch (err) {
