@@ -5,6 +5,7 @@ node_modules
 .archive
 .archive.log
 .env.teamsfx.local
+.env.Prod_EEA
 subscriptionInfo.json
 build
 .fx/configs/config.local.json
