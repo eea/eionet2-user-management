@@ -207,6 +207,7 @@ export function UserEdit({
         const index = pcps.indexOf(option);
         index >= 0 && pcps.splice(index, 1);
       }
+      user.PCP = pcps;
       const result = checkPCP && checkPCP(user);
       if (result.length) {
         setWarningText(`${configuration.PcpValidationMessage} ${result.join(', ')}`);

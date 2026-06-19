@@ -32,7 +32,6 @@ jest.mock('./tagProvider', () => ({
 jest.mock('./userGroupProvider', () => ({
   postUserGroup: jest.fn(),
   deleteUserGroup: jest.fn(),
-  getExistingGroups: jest.fn(),
 }));
 
 jest.mock('./notificationProvider', () => ({
@@ -66,7 +65,6 @@ describe('provider', () => {
       ...new Set(mappings.map((mapping) => mapping.O365GroupId)),
     ]);
     tagProvider.getCountryName.mockImplementation((country) => `Country:${country}`);
-    userGroupProvider.getExistingGroups.mockResolvedValue([]);
     sharepointProvider.saveSPUser.mockResolvedValue({});
     apiProvider.apiPatch.mockResolvedValue({});
     apiProvider.apiPost.mockResolvedValue({});
@@ -269,6 +267,8 @@ describe('provider', () => {
 
       expect(apiProvider.apiGet).toHaveBeenCalledWith(
         "/reports/credentialUserRegistrationDetails?$filter=userDisplayName eq 'Jane O''Connor'",
+        'app',
+        true,
       );
       expect(notificationProvider.sendInvitationMail).toHaveBeenCalledWith(
         expect.objectContaining({ Email: 'existing@example.com', SignedIn: true }),
@@ -318,8 +318,6 @@ describe('provider', () => {
         { Membership: 'Observer', O365GroupId: 'group-2', Tag: 'ObserverTag' },
         { Membership: 'OldMember', O365GroupId: 'old-group', Tag: 'OldTag' },
       ];
-
-      userGroupProvider.getExistingGroups.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await provider.editUser(user, mappings, oldValues);
 
@@ -465,8 +463,6 @@ describe('provider', () => {
         NFP: '',
       };
       const mappings = [{ Membership: 'Member', O365GroupId: 'group-1', Tag: 'MemberTag' }];
-
-      userGroupProvider.getExistingGroups.mockResolvedValueOnce([]);
 
       const result = await provider.resendInvitation(user, mappings, oldValues);
 

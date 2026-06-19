@@ -72,14 +72,14 @@ export async function apiPatch(path, data, eTag = undefined, credentialType = 'a
   }
 }
 
-export async function apiDelete(path, credentialType = 'app') {
+export async function apiDelete(path, credentialType = 'app', skipLog) {
   try {
     return await callApiFunction('graphData', 'delete', {
       credentialType: credentialType,
       path: path,
     });
   } catch (err) {
-    if (!err?.requiresLogin) {
+    if (!skipLog && !err?.requiresLogin) {
       logError(err, path, null);
     }
     throw err;
